@@ -1,0 +1,10 @@
+{
+  "name": "Remix: ClimaAgora IA",
+  "description": "Plataforma inteligente de previsão e monitoramento climático para tomada de decisões rurais, industriais e urbanas.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

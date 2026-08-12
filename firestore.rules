@@ -1,0 +1,143 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. Global safety net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Global Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() 
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'admin';
+    }
+
+    // 3. Schema and Integrity Validation Blueprint
+    function isValidPreferences(data, userId) {
+      return data.get('userId', userId) == userId
+        && (data.get('favorites', []) is list)
+        && data.get('favorites', []).size() <= 50
+        && (data.get('notificationLocations', []) is list)
+        && data.get('notificationLocations', []).size() <= 50
+        && (data.get('notificationCategories', []) is list)
+        && data.get('notificationCategories', []).size() <= 50
+        && (data.get('notificationEnabled', true) is bool)
+        && (data.get('colorblindMode', false) is bool)
+        && (data.get('alertRadius', 50) is int || data.get('alertRadius', 50) is float)
+        && (data.get('userTimezone', -3) is int || data.get('userTimezone', -3) is float)
+        && (data.get('aiRecommendations', []) is list)
+        && data.get('aiRecommendations', []).size() <= 100
+        && (data.get('profile', '') is string)
+        && data.get('profile', '').size() <= 50
+        && (data.get('termsAccepted', false) is bool)
+        && (data.get('termsAcceptedVersion', '') is string)
+        && data.get('termsAcceptedVersion', '').size() <= 50
+        && (data.get('termsAcceptedAt', '') is string)
+        && data.get('termsAcceptedAt', '').size() <= 100
+        && (!('updatedAt' in data) || data.updatedAt == request.time || data.updatedAt is timestamp);
+    }
+
+    function isValidReport(data) {
+      return (data.type == 'error' || data.type == 'suggestion')
+        && data.message is string
+        && data.message.size() <= 2000
+        && (data.get('userEmail', '') is string && data.get('userEmail', '').size() <= 200)
+        && (data.get('userId', '') is string && data.get('userId', '').size() <= 100);
+    }
+
+    function isValidAd(data) {
+      return data.title is string && data.title.size() <= 200
+        && data.description is string && data.description.size() <= 2000
+        && data.linkUrl is string && data.linkUrl.size() <= 1000
+        && (data.get('createdAt', '') is string && data.get('createdAt', '').size() <= 100);
+    }
+
+    function isValidCieFeedback(data) {
+      return (data.rating is int || data.rating is float)
+        && data.rating >= 1 && data.rating <= 5
+        && (data.aiRating is int || data.aiRating is float)
+        && data.aiRating >= 1 && data.aiRating <= 5
+        && (data.get('feedbackText', '') is string)
+        && data.get('feedbackText', '').size() <= 2000
+        && (data.get('location', '') is string)
+        && (data.get('userEmail', '') is string)
+        && (data.get('userId', '') is string)
+        && data.timestamp is string;
+    }
+
+    // 4. Match User Document Block
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) 
+        && isValidPreferences(request.resource.data, userId)
+        && (!('role' in request.resource.data) || request.resource.data.role == 'user');
+      allow update: if (isOwner(userId) 
+        && isValidPreferences(request.resource.data, userId)
+        && request.resource.data.get('userId', userId) == resource.data.get('userId', userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+             'userId', 'favorites', 'notificationLocations', 'notificationCategories', 
+             'notificationEnabled', 'colorblindMode', 'alertRadius', 'userTimezone', 'aiRecommendations', 'updatedAt',
+             'profile', 'termsAccepted', 'termsAcceptedVersion', 'termsAcceptedAt'
+           ])) || isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // 5. Schema validation helper for Calibrations
+    function isValidCalibration(data) {
+      return (data.x is float || data.x is int)
+        && (data.y is float || data.y is int)
+        && (data.lat is float || data.lat is int)
+        && (data.lon is float || data.lon is int)
+        && data.event is string
+        && data.event.size() <= 100
+        && data.detail is string
+        && data.detail.size() <= 1000
+        && data.timestamp is string
+        && data.timestamp.size() <= 100;
+    }
+
+    // 6. Match Calibrations Block
+    match /calibrations/{calibrationId} {
+      allow read: if true;
+      allow create: if isValidCalibration(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Match Reports/Suggestions Block
+    match /reports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if isValidReport(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Match Ads Block
+    match /ads/{adId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidAd(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Match CIE Feedback Block
+    match /cie_feedback/{feedbackId} {
+      allow read: if isAdmin();
+      allow create: if isValidCieFeedback(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // 7. Match Test Document Block
+    match /test/connection {
+      allow get: if true;
+    }
+  }
+}

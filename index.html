@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#020617" />
+    <meta name="description" content="Plataforma de inteligência meteorológica avançada com IA, radar de alta resolução, agrometeorologia e previsões hiperlocais." />
+    
+    <!-- PWA Web Manifest & Store App Integration -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/pwa-192.png" />
+    
+    <!-- iOS Native Web App Capable Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ClimaAgora" />
+    
+    <!-- Android / Chrome Web App Capable -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="ClimaAgora IA" />
+
+    <title>ClimaAgora IA — Inteligência Climática</title>
+    <script>
+      window.addEventListener('error', function(e) {
+        if (e.message && e.message.includes('ResizeObserver')) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        }
+      }, true);
+      window.onerror = function(msg) {
+        if (typeof msg === 'string' && msg.includes('ResizeObserver')) {
+          return true;
+        }
+      };
+    </script>
+  </head>
+  <body class="bg-slate-950 text-white selection:bg-sky-500 selection:text-slate-950">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

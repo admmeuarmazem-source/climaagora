@@ -1,0 +1,40 @@
+{
+  "short_name": "ClimaAgora",
+  "name": "ClimaAgora IA — Inteligência Climática Avançada",
+  "description": "Plataforma de inteligência meteorológica de alta precisão com IA, radar CEMADEN/GOES-16, monitoramento agrometeorológico e previsões hiperlocais.",
+  "icons": [
+    {
+      "src": "pwa-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "pwa-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["weather", "utilities", "productivity", "agronomy"],
+  "shortcuts": [
+    {
+      "name": "Radar em Tempo Real",
+      "short_name": "Radar",
+      "description": "Acessar radar de precipitação",
+      "url": "/?tab=dashboard#advanced-weather-suite"
+    },
+    {
+      "name": "Painel de Decisão Rural",
+      "short_name": "Agronegócio",
+      "description": "Ver decisão agrícola e pecuária",
+      "url": "/?tab=decision"
+    }
+  ]
+}

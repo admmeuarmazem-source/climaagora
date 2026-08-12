@@ -1,0 +1,1419 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+:root {
+  --chart-axis: #0f172a;
+  --chart-grid: rgba(15, 23, 42, 0.18);
+  --chart-legend: #0f172a;
+}
+
+.dark {
+  --chart-axis: #f8fafc;
+  --chart-grid: rgba(255, 255, 255, 0.18);
+  --chart-legend: #f8fafc;
+}
+
+/* Proportional Typography Scaling */
+html {
+  font-size: 104.5%;
+}
+
+button, input, select, textarea {
+  font-size: 1.02em;
+}
+
+/* Leaflet Container overrides for sleek look */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: #020617 !important;
+}
+
+.leaflet-bar {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+}
+
+.leaflet-bar a {
+  background-color: rgba(15, 23, 42, 0.9) !important;
+  color: #f1f5f9 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.2s ease !important;
+}
+
+.leaflet-bar a:hover {
+  background-color: #4A90E2 !important;
+  color: #ffffff !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  color: #f1f5f9 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Radar Pulse / Precipitation animation */
+@keyframes radar-pulse {
+  0% {
+    fill-opacity: 0.12;
+    stroke-width: 1;
+  }
+  50% {
+    fill-opacity: 0.35;
+    stroke-width: 2.2;
+  }
+  100% {
+    fill-opacity: 0.12;
+    stroke-width: 1;
+  }
+}
+.animate-radar {
+  animation: radar-pulse 3s ease-in-out infinite;
+}
+
+/* Rotating wind vectors flow animation */
+@keyframes wind-dash-flow {
+  to {
+    stroke-dashoffset: -30;
+  }
+}
+.animate-wind-dash {
+  stroke-dasharray: 6, 6;
+  animation: wind-dash-flow 1.8s linear infinite;
+}
+
+/* Electrical discharges flashing animation */
+@keyframes lightning-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 1px #f59e0b);
+    opacity: 0.75;
+  }
+  50% {
+    filter: drop-shadow(0 0 10px #fbbf24);
+    opacity: 1;
+  }
+}
+.animate-lightning-strike {
+  animation: lightning-glow 1.2s ease-in-out infinite alternate;
+}
+
+/* Warm heat waves slow breathing */
+@keyframes heat-wave-pulsing {
+  0% {
+    fill-opacity: 0.14;
+    stroke-width: 2;
+  }
+  50% {
+    fill-opacity: 0.38;
+    stroke-width: 3.5;
+  }
+  100% {
+    fill-opacity: 0.14;
+    stroke-width: 2;
+  }
+}
+.animate-heat {
+  animation: heat-wave-pulsing 4.5s ease-in-out infinite;
+}
+
+/* Cold front slow movement */
+@keyframes cold-wave-pulsing {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 24;
+  }
+}
+.animate-cold {
+  stroke-dasharray: 8, 4;
+  animation: cold-wave-pulsing 5.5s linear infinite;
+}
+
+html {
+  font-size: 17px;
+}
+
+@media (max-width: 640px) {
+  html {
+    font-size: 14.5px;
+  }
+}
+
+@media (max-width: 400px) {
+  html {
+    font-size: 13px;
+  }
+}
+
+body {
+  font-size: 1rem;
+  line-height: 1.6;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scaling all headings (h1, h2, h3, h4, h5, h6) by exactly 15% globally */
+h1.text-xs, h2.text-xs, h3.text-xs, h4.text-xs, h5.text-xs, h6.text-xs { font-size: calc(0.75rem * 1.15) !important; }
+h1.text-sm, h2.text-sm, h3.text-sm, h4.text-sm, h5.text-sm, h6.text-sm { font-size: calc(0.875rem * 1.15) !important; }
+h1.text-base, h2.text-base, h3.text-base, h4.text-base, h5.text-base, h6.text-base { font-size: calc(1rem * 1.15) !important; }
+h1.text-lg, h2.text-lg, h3.text-lg, h4.text-lg, h5.text-lg, h6.text-lg { font-size: calc(1.125rem * 1.15) !important; }
+h1.text-xl, h2.text-xl, h3.text-xl, h4.text-xl, h5.text-xl, h6.text-xl { font-size: calc(1.25rem * 1.15) !important; }
+h1.text-2xl, h2.text-2xl, h3.text-2xl, h4.text-2xl, h5.text-2xl, h6.text-2xl { font-size: calc(1.5rem * 1.15) !important; }
+h1.text-3xl, h2.text-3xl, h3.text-3xl, h4.text-3xl, h5.text-3xl, h6.text-3xl { font-size: calc(1.875rem * 1.15) !important; }
+h1.text-4xl, h2.text-4xl, h3.text-4xl, h4.text-4xl, h5.text-4xl, h6.text-4xl { font-size: calc(2.25rem * 1.15) !important; }
+h1.text-5xl, h2.text-5xl, h3.text-5xl, h4.text-5xl, h5.text-5xl, h6.text-5xl { font-size: calc(3rem * 1.15) !important; }
+h1.text-6xl, h2.text-6xl, h3.text-6xl, h4.text-6xl, h5.text-6xl, h6.text-6xl { font-size: calc(3.75rem * 1.15) !important; }
+
+/* Custom print media rules for the PDF Report */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-pdf-report, #printable-pdf-report * {
+    visibility: visible;
+  }
+  #printable-pdf-report {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+@keyframes rain-fall-layer1 {
+  0% {
+    background-position: 0px 0px;
+  }
+  100% {
+    background-position: -240px 960px;
+  }
+}
+
+@keyframes rain-fall-layer2 {
+  0% {
+    background-position: 0px 0px;
+  }
+  100% {
+    background-position: -300px 900px;
+  }
+}
+
+@keyframes snow-fall {
+  0% {
+    background-position: 0px 0px;
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(25px);
+  }
+  100% {
+    background-position: 150px 600px;
+    transform: translateX(0);
+  }
+}
+
+@keyframes lightning-flash {
+  0%, 91%, 95%, 98%, 100% {
+    opacity: 0;
+  }
+  92%, 94% {
+    opacity: 0.65;
+  }
+  96% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes lightning-bolt-strike {
+  0%, 91%, 95%, 99%, 100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  92%, 94% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  96% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+}
+
+@keyframes sun-rays-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes frost-shimmer {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 0.95; transform: scale(1.02); }
+}
+
+.animate-rain-fall {
+  animation: rain-fall-layer1 0.75s linear infinite;
+}
+
+.animate-rain-fall-slow {
+  animation: rain-fall-layer2 1.1s linear infinite;
+}
+
+.animate-snow-fall {
+  animation: snow-fall 10s linear infinite;
+}
+
+.animate-lightning-flash {
+  animation: lightning-flash 5s ease-in-out infinite;
+}
+
+.animate-lightning-bolt {
+  animation: lightning-bolt-strike 5s ease-in-out infinite;
+}
+
+.animate-sun-rays {
+  animation: sun-rays-spin 40s linear infinite;
+}
+
+.animate-frost-shimmer {
+  animation: frost-shimmer 4s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin 25s linear infinite;
+}
+
+@keyframes fog-drift {
+  0% { transform: translateX(-8%) translateY(0) scale(1); opacity: 0.25; }
+  50% { transform: translateX(8%) translateY(3%) scale(1.15); opacity: 0.45; }
+  100% { transform: translateX(-8%) translateY(0) scale(1); opacity: 0.25; }
+}
+.animate-fog-drift {
+  animation: fog-drift 20s ease-in-out infinite;
+}
+
+@keyframes float-cloud {
+  0% { transform: translateX(-15%); }
+  100% { transform: translateX(115%); }
+}
+.animate-float-cloud-slow {
+  animation: float-cloud 80s linear infinite;
+}
+.animate-float-cloud-fast {
+  animation: float-cloud 40s linear infinite;
+}
+
+@keyframes ocean-wave {
+  0%, 100% { transform: translateY(0) skewX(-2deg); }
+  50% { transform: translateY(6px) skewX(2deg); }
+}
+.animate-ocean-wave-1 {
+  animation: ocean-wave 6s ease-in-out infinite;
+}
+.animate-ocean-wave-2 {
+  animation: ocean-wave 4s ease-in-out infinite;
+}
+
+@keyframes lighthouse-beam {
+  0% { transform: rotate(-40deg); opacity: 0.05; }
+  50% { transform: rotate(10deg); opacity: 0.35; }
+  100% { transform: rotate(60deg); opacity: 0.05; }
+}
+.animate-lighthouse-beam {
+  transform-origin: bottom center;
+  animation: lighthouse-beam 8s ease-in-out infinite;
+}
+
+@keyframes vegetation-sway {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(3deg); }
+}
+.animate-vegetation-sway {
+  transform-origin: bottom center;
+  animation: vegetation-sway 6s ease-in-out infinite;
+}
+
+@keyframes sky-glow {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; filter: saturate(1.15); }
+}
+.animate-sky-glow {
+  animation: sky-glow 12s ease-in-out infinite;
+}
+
+.text-shadow-strong {
+  text-shadow: none !important;
+}
+
+.text-shadow-subtle {
+  text-shadow: none !important;
+}
+
+/* Custom map tooltip overrides for transparent backgrounds */
+.leaflet-tooltip.custom-map-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.leaflet-tooltip-top.custom-map-tooltip::before {
+  border-top-color: rgba(16, 185, 129, 0.5) !important;
+}
+
+/* ----------------------------------------------------
+   ACCESSIBILITY & FONT SIZE ENHANCEMENTS (MINIMUM 16px FOR PARAGRAPHS & LISTS)
+   As per user request: "garanta um tamanho de fonte mínimo de 16px para todos os textos de parágrafo e listas, e aumente o contraste"
+   ---------------------------------------------------- */
+.global-min-font-16,
+.global-min-font-16 p,
+.global-min-font-16 li,
+.global-min-font-16 ul,
+.global-min-font-16 ol,
+p, 
+li,
+ul,
+ol {
+  font-size: 16px !important;
+  line-height: 1.62 !important;
+}
+
+.text-slate-300, 
+.text-slate-400, 
+.text-[10px], 
+.text-[11px],
+.text-[12px] {
+  font-size: 14px !important;
+  line-height: 1.62 !important;
+}
+
+/* Ensure maximum contrast on dark slate background */
+.text-slate-400 {
+  color: #cbd5e1 !important; /* Boosted from slate-400 to slate-300 for high readability */
+}
+.text-slate-350 {
+  color: #e2e8f0 !important;
+}
+.text-slate-300 {
+  color: #f1f5f9 !important; /* Boosted to slate-100 for high readability */
+}
+
+/* Retain compact sizing for explicit mono labels, tiny badges/dates at a very legible size */
+span.font-mono, 
+.text-[8px], 
+.text-[9px] {
+  font-size: 12px !important; /* Boosted slightly to ensure readability */
+}
+
+/* ----------------------------------------------------
+   LIGHT THEME STYLING OVERRIDES (MODO CLARO)
+   ---------------------------------------------------- */
+.light {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%) !important;
+  color: #0f172a !important;
+}
+
+.light header#main-nav-bar {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-bottom-color: rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Comprehensive Light Mode Contrast Rules */
+.light {
+  color: #0f172a !important;
+}
+
+.light header#main-nav-bar,
+.light header#main-nav-bar *,
+.light header#main-nav-bar h1,
+.light header#main-nav-bar p,
+.light header#main-nav-bar span,
+.light header#main-nav-bar div {
+  color: #0f172a;
+}
+
+.light p, 
+.light li,
+.light ul,
+.light ol,
+.light span,
+.light h1,
+.light h2,
+.light h3,
+.light h4,
+.light h5,
+.light h6,
+.light label,
+.light div {
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+.light h1,
+.light h2,
+.light h3,
+.light h4,
+.light h5,
+.light h6 {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+/* All dark slate/transparent background cards become crisp white with subtle border in light mode */
+.light .bg-slate-950,
+.light .bg-slate-950\/40,
+.light .bg-slate-950\/55,
+.light .bg-slate-950\/60,
+.light .bg-slate-950\/80,
+.light .bg-slate-950\/85,
+.light .bg-slate-900,
+.light .bg-slate-900\/60,
+.light .bg-slate-900\/40,
+.light .bg-slate-900\/65,
+.light .bg-slate-900\/30,
+.light .bg-slate-900\/80,
+.light .bg-slate-900\/90,
+.light .bg-slate-800,
+.light .bg-slate-800\/90,
+.light [class*="bg-slate-9"],
+.light [class*="bg-slate-8"] {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* Ensure ALL text inside cards and mini-cards become ultra dark slate/black (#020617) in light mode */
+.light .text-white,
+.light .text-slate-50,
+.light .text-slate-100,
+.light .text-slate-200,
+.light .text-slate-300,
+.light .text-slate-350,
+.light .text-gray-100,
+.light .text-gray-200,
+.light .text-gray-300,
+.light .text-zinc-100,
+.light .text-zinc-200,
+.light .text-zinc-300 {
+  color: #020617 !important;
+}
+
+.light .text-slate-400,
+.light .text-slate-500,
+.light .text-slate-600,
+.light .text-gray-400,
+.light .text-gray-500,
+.light .text-zinc-400,
+.light .text-zinc-500 {
+  color: #0f172a !important;
+}
+
+/* Darken colored accent text in light mode so they are dark, vivid, and 100% legible on white card backgrounds */
+.light .text-sky-100,
+.light .text-sky-200,
+.light .text-sky-300,
+.light .text-sky-400,
+.light .text-sky-500 {
+  color: #0369a1 !important;
+}
+
+.light .text-blue-100,
+.light .text-blue-200,
+.light .text-blue-300,
+.light .text-blue-400,
+.light .text-blue-500 {
+  color: #1d4ed8 !important;
+}
+
+.light .text-amber-100,
+.light .text-amber-200,
+.light .text-amber-300,
+.light .text-amber-400,
+.light .text-amber-500 {
+  color: #b45309 !important;
+}
+
+.light .text-emerald-100,
+.light .text-emerald-200,
+.light .text-emerald-300,
+.light .text-emerald-400,
+.light .text-emerald-500 {
+  color: #047857 !important;
+}
+
+.light .text-cyan-100,
+.light .text-cyan-200,
+.light .text-cyan-300,
+.light .text-cyan-400,
+.light .text-cyan-500 {
+  color: #0e7490 !important;
+}
+
+.light .text-purple-100,
+.light .text-purple-200,
+.light .text-purple-300,
+.light .text-purple-400,
+.light .text-purple-500 {
+  color: #6b21a8 !important;
+}
+
+.light .text-indigo-100,
+.light .text-indigo-200,
+.light .text-indigo-300,
+.light .text-indigo-400,
+.light .text-indigo-500 {
+  color: #3730a3 !important;
+}
+
+.light .text-teal-100,
+.light .text-teal-200,
+.light .text-teal-300,
+.light .text-teal-400,
+.light .text-teal-500 {
+  color: #0f766e !important;
+}
+
+.light .text-red-100,
+.light .text-red-200,
+.light .text-red-300,
+.light .text-red-400,
+.light .text-red-500 {
+  color: #b91c1c !important;
+}
+
+.light .text-yellow-100,
+.light .text-yellow-200,
+.light .text-yellow-300,
+.light .text-yellow-400,
+.light .text-yellow-500 {
+  color: #a16207 !important;
+}
+
+.light .text-orange-100,
+.light .text-orange-200,
+.light .text-orange-300,
+.light .text-orange-400,
+.light .text-orange-500 {
+  color: #c2410c !important;
+}
+
+.light .border-white\/10,
+.light .border-white\/5,
+.light .border-white\/20,
+.light .border-white\/30 {
+  border-color: rgba(15, 23, 42, 0.15) !important;
+}
+
+.light input[type="text"],
+.light select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.2) !important;
+}
+
+/* Maintain white text ONLY on actual solid dark buttons or badges in light mode */
+.light button.bg-sky-600 *,
+.light button.bg-blue-600 *,
+.light button.bg-indigo-600 *,
+.light button.bg-emerald-600 *,
+.light button.bg-red-600 *,
+.light button.bg-gradient-to-r *,
+.light .bg-sky-600.text-white,
+.light .bg-blue-600.text-white,
+.light .bg-emerald-600.text-white,
+.light .bg-red-600.text-white {
+  color: #ffffff !important;
+}
+
+.light .shadow-2xl {
+  box-shadow: 0 15px 35px -10px rgba(15, 23, 42, 0.12) !important;
+}
+
+/* Apple Weather-like immersive animations */
+@keyframes apple-rain {
+  0% { transform: translateY(-100%) rotate(15deg); opacity: 0; }
+  50% { opacity: 0.8; }
+  100% { transform: translateY(100vh) rotate(15deg); opacity: 0; }
+}
+.animate-apple-rain {
+  animation: apple-rain 1.5s linear infinite;
+}
+
+@keyframes apple-snow {
+  0% { transform: translateY(-10px) translateX(-10px); opacity: 0; }
+  50% { opacity: 0.9; }
+  100% { transform: translateY(100vh) translateX(20px); opacity: 0; }
+}
+.animate-apple-snow {
+  animation: apple-snow 4s ease-in-out infinite;
+}
+
+@keyframes apple-cloud-glide {
+  0% { transform: translateX(-100%); opacity: 0.1; }
+  50% { opacity: 0.45; }
+  100% { transform: translateX(100%); opacity: 0.1; }
+}
+.animate-apple-cloud {
+  animation: apple-cloud-glide 22s linear infinite;
+}
+
+@keyframes apple-solar-glow {
+  0%, 100% { transform: scale(1); opacity: 0.25; filter: blur(40px); }
+  50% { transform: scale(1.18); opacity: 0.55; filter: blur(50px); }
+}
+.animate-apple-sun {
+  animation: apple-solar-glow 6s ease-in-out infinite;
+}
+
+@keyframes apple-lightning {
+  0%, 94%, 98%, 100% { opacity: 0; }
+  95%, 97% { opacity: 0.95; background-color: rgba(255, 255, 255, 0.95); box-shadow: 0 0 80px 30px rgba(255, 255, 255, 0.8); }
+}
+.animate-apple-lightning {
+  animation: apple-lightning 5s infinite;
+}
+
+@keyframes apple-star-twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+.animate-apple-star {
+  animation: apple-star-twinkle 2.5s ease-in-out infinite;
+}
+
+@keyframes apple-hurricane {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+.animate-apple-hurricane {
+  animation: apple-hurricane 14s linear infinite;
+}
+
+/* ====================================================
+   FIXED HEADER & NO TEXT SHADOW OVERRIDES
+   ==================================================== */
+
+/* Cabeçalho Fixo e Rodapé Garantidos com #root */
+#root #main-nav-bar,
+#root header.sticky,
+#root header.fixed,
+#root nav.fixed:not(#fixed-bottom-nav),
+#root nav.sticky,
+#main-nav-bar,
+header.sticky,
+header.fixed {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 9000 !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+}
+
+/* Layer 1: Fixed Bottom Navigation Bar (Solid Opaque Base) */
+#fixed-bottom-nav {
+  position: fixed !important;
+  bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)) !important;
+  left: 50% !important;
+  transform: translate(-50%, 0) !important;
+  top: auto !important;
+  right: auto !important;
+  z-index: 5000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-around !important;
+  margin: 0 !important;
+  width: calc(100% - 1.25rem) !important;
+  max-width: 520px !important;
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
+  box-sizing: border-box !important;
+  background-color: #0f172a !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.75) !important;
+  pointer-events: auto !important;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out !important;
+}
+
+#fixed-bottom-nav button,
+#scroll-nav-overlay button {
+  flex-shrink: 0 !important;
+}
+
+#fixed-bottom-nav button span,
+#scroll-nav-overlay button span {
+  color: #cbd5e1 !important;
+  white-space: nowrap !important;
+}
+
+#fixed-bottom-nav button svg,
+#scroll-nav-overlay button svg {
+  color: #cbd5e1 !important;
+}
+
+#fixed-bottom-nav button:hover span,
+#fixed-bottom-nav button:hover svg,
+#scroll-nav-overlay button:hover span,
+#scroll-nav-overlay button:hover svg {
+  color: #ffffff !important;
+}
+
+#fixed-bottom-nav button[data-active="true"] span,
+#fixed-bottom-nav button[data-active="true"] svg,
+#fixed-bottom-nav button.active-tab span,
+#fixed-bottom-nav button.active-tab svg,
+#scroll-nav-overlay button[data-active="true"] span,
+#scroll-nav-overlay button[data-active="true"] svg,
+#scroll-nav-overlay button.active-tab span,
+#scroll-nav-overlay button.active-tab svg {
+  color: #38bdf8 !important; /* Sky 400 */
+}
+
+/* Layer 2: Scroll Navigation Overlay (Translucent Floating) */
+#scroll-nav-overlay {
+  position: fixed !important;
+  bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)) !important;
+  left: 50% !important;
+  transform: translate(-50%, 0) !important;
+  top: auto !important;
+  right: auto !important;
+  z-index: 5000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-around !important;
+  margin: 0 !important;
+  width: calc(100% - 1.25rem) !important;
+  max-width: 520px !important;
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
+  box-sizing: border-box !important;
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5) !important;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out !important;
+}
+
+/* Responsiveness for small screens (< 360px and < 320px) */
+@media (max-width: 360px) {
+  #fixed-bottom-nav,
+  #scroll-nav-overlay {
+    bottom: 0.5rem !important;
+    width: calc(100% - 0.75rem) !important;
+    padding: 0.25rem 0.25rem !important;
+  }
+}
+
+@media (max-width: 320px) {
+  #fixed-bottom-nav,
+  #scroll-nav-overlay {
+    bottom: 0.25rem !important;
+    width: calc(100% - 0.25rem) !important;
+    padding: 0.15rem 0.05rem !important;
+    margin: 0 auto !important;
+    justify-content: space-evenly !important;
+    flex-wrap: nowrap !important;
+  }
+  #fixed-bottom-nav button,
+  #scroll-nav-overlay button {
+    padding: 1px 0px !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  #fixed-bottom-nav button span,
+  #scroll-nav-overlay button span {
+    font-size: 7px !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1 !important;
+    padding: 0 !important;
+  }
+  #fixed-bottom-nav button svg,
+  #scroll-nav-overlay button svg {
+    width: 14px !important;
+    height: 14px !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+  }
+}
+
+/* Light Mode Overrides for Navigation Bars */
+.light #fixed-bottom-nav,
+html.light #fixed-bottom-nav {
+  background-color: #ffffff !important;
+  border: 1.5px solid rgba(15, 23, 42, 0.25) !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.2) !important;
+}
+
+.light #scroll-nav-overlay,
+html.light #scroll-nav-overlay {
+  background-color: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1.5px solid rgba(15, 23, 42, 0.2) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+.light #fixed-bottom-nav button span,
+html.light #fixed-bottom-nav button span,
+.light #scroll-nav-overlay button span,
+html.light #scroll-nav-overlay button span {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+
+.light #fixed-bottom-nav button svg,
+html.light #fixed-bottom-nav button svg,
+.light #scroll-nav-overlay button svg,
+html.light #scroll-nav-overlay button svg {
+  color: #0f172a !important;
+}
+
+.light #fixed-bottom-nav button:hover span,
+html.light #fixed-bottom-nav button:hover span,
+.light #fixed-bottom-nav button:hover svg,
+html.light #fixed-bottom-nav button:hover svg,
+.light #scroll-nav-overlay button:hover span,
+html.light #scroll-nav-overlay button:hover span,
+.light #scroll-nav-overlay button:hover svg,
+html.light #scroll-nav-overlay button:hover svg {
+  color: #0284c7 !important;
+}
+
+.light #fixed-bottom-nav button[data-active="true"] span,
+html.light #fixed-bottom-nav button[data-active="true"] span,
+.light #fixed-bottom-nav button[data-active="true"] svg,
+html.light #fixed-bottom-nav button[data-active="true"] svg,
+.light #fixed-bottom-nav button.active-tab span,
+html.light #fixed-bottom-nav button.active-tab span,
+.light #fixed-bottom-nav button.active-tab svg,
+html.light #fixed-bottom-nav button.active-tab svg,
+.light #scroll-nav-overlay button[data-active="true"] span,
+html.light #scroll-nav-overlay button[data-active="true"] span,
+.light #scroll-nav-overlay button[data-active="true"] svg,
+html.light #scroll-nav-overlay button[data-active="true"] svg,
+.light #scroll-nav-overlay button.active-tab span,
+html.light #scroll-nav-overlay button.active-tab span,
+.light #scroll-nav-overlay button.active-tab svg,
+html.light #scroll-nav-overlay button.active-tab svg {
+  color: #0284c7 !important; /* Sky 600 */
+}
+
+footer {
+  position: relative !important;
+  bottom: auto !important;
+  margin-top: auto !important;
+  z-index: 80 !important;
+  width: 100% !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  background-color: rgba(15, 23, 42, 0.1) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: none !important;
+}
+
+.light footer {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #020617 !important;
+}
+
+/* ====================================================
+   LAYOUT STABILITY & PREVENT LAYOUT SHIFT (#root)
+   ==================================================== */
+#root {
+  width: 100% !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  flex-grow: 1 !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+}
+
+#root > main,
+#root > div,
+#root section,
+#root .main-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* WCAG AAA Contrast Threshold (7:1+) & Fixed Header Blur for #root in Light Mode */
+.light #root,
+.light body {
+  color: #020617 !important; /* Deepest slate black for WCAG AAA 15:1+ contrast against light background */
+}
+
+/* Force WCAG AAA contrast >= 7:1 for all paragraphs and secondary texts inside #root in light mode */
+.light #root p,
+.light #root span:not(.keep-white),
+.light #root label,
+.light #root small,
+.light #root td,
+.light #root th {
+  color: #020617 !important;
+}
+
+/* Fixed/Sticky Headers with 24px blur and z-index 100/50 in Light Mode for #root */
+.light #root #main-nav-bar,
+.light #root header.sticky,
+.light #root header.fixed,
+.light #root nav.fixed:not(#fixed-bottom-nav),
+.light #root nav.sticky,
+.light #main-nav-bar,
+.light header.sticky,
+.light header.fixed,
+.light nav.fixed:not(#fixed-bottom-nav),
+.light nav.sticky {
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  z-index: 9000 !important;
+  background-color: rgba(255, 255, 255, 0.82) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ====================================================
+   TRANSPARENT FROSTED GLASS CARDS IN LIGHT MODE
+   ==================================================== */
+
+/* General Light Mode Default Text with WCAG AAA Contrast */
+html.light body,
+.light {
+  color: #020617;
+}
+
+/* Custom Dynamic Cards & Black Glass Containers - Forced Pure Black Cards */
+.custom-dynamic-card,
+.card,
+.mini-card {
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65) !important;
+  transition: opacity 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Mandatory Pure White Cards (#FFFFFF) across all modes for 100% legibility */
+.custom-dynamic-card,
+.card,
+.mini-card,
+.light .custom-dynamic-card,
+.light .card,
+.light .mini-card,
+.dark .custom-dynamic-card,
+.dark .card,
+.dark .mini-card {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid rgba(203, 213, 225, 0.9) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+  color: #000000 !important;
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Ensure ALL text inside cards stays crisp 100% black by default */
+.custom-dynamic-card h1, .custom-dynamic-card h2, .custom-dynamic-card h3, .custom-dynamic-card h4, .custom-dynamic-card h5, .custom-dynamic-card h6,
+.card h1, .card h2, .card h3, .card h4, .card h5, .card h6,
+.mini-card h1, .mini-card h2, .mini-card h3, .mini-card h4, .mini-card h5, .mini-card h6,
+.dark .custom-dynamic-card h1, .dark .custom-dynamic-card h2, .dark .custom-dynamic-card h3, .dark .custom-dynamic-card h4, .dark .dark .custom-dynamic-card h5, .dark .custom-dynamic-card h6,
+.dark .card h1, .dark .card h2, .dark .card h3, .dark .card h4, .dark .card h5, .dark .card h6,
+.dark .mini-card h1, .dark .mini-card h2, .dark .mini-card h3, .dark .mini-card h4, .dark .mini-card h5, .dark .mini-card h6 {
+  text-shadow: none !important;
+  color: #000000 !important;
+}
+
+.custom-dynamic-card p, .card p, .mini-card p,
+.dark .custom-dynamic-card p, .dark .card p, .dark .mini-card p,
+.custom-dynamic-card label, .card label, .mini-card label,
+.dark .custom-dynamic-card label, .dark .card label, .dark .mini-card label,
+.custom-dynamic-card strong, .card strong, .mini-card strong,
+.dark .custom-dynamic-card strong, .dark .card strong, .dark .mini-card strong {
+  text-shadow: none !important;
+  color: #000000 !important;
+}
+
+/* Global rule: Slate and gray text classes inside cards become black for legibility */
+.custom-dynamic-card [class*="text-slate-"]:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-teal-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+.custom-dynamic-card [class*="text-gray-"]:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-teal-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+.card [class*="text-slate-"]:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-teal-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+.card [class*="text-gray-"]:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-teal-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+.mini-card [class*="text-slate-"]:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-teal-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+.mini-card [class*="text-gray-"]:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-teal-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]) {
+  color: #000000 !important;
+}
+
+/* Force dark inner boxes inside cards to become crisp light backgrounds */
+.card [class*="bg-slate-9"],
+.card [class*="bg-slate-8"],
+.card [class*="bg-black"],
+.mini-card [class*="bg-slate-9"],
+.mini-card [class*="bg-slate-8"],
+.mini-card [class*="bg-black"],
+.custom-dynamic-card [class*="bg-slate-9"],
+.custom-dynamic-card [class*="bg-slate-8"],
+.custom-dynamic-card [class*="bg-black"] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #000000 !important;
+}
+
+/* Hover state for white cards */
+.custom-dynamic-card:hover,
+.card:hover,
+.mini-card:hover,
+.light .custom-dynamic-card:hover,
+.light .card:hover,
+.light .mini-card:hover,
+.dark .custom-dynamic-card:hover,
+.dark .card:hover,
+.dark .mini-card:hover {
+  background-color: #ffffff !important;
+  border-color: rgba(56, 189, 248, 0.6) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Footer with 90% background transparency */
+footer {
+  position: relative !important;
+  z-index: 90 !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  background-color: rgba(15, 23, 42, 0.1) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+  margin-top: auto !important;
+  box-shadow: none !important;
+}
+
+.light footer {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #020617 !important;
+}
+
+/* ====================================================
+   CSS CONTAINER QUERIES FOR DASHBOARD & CARDS
+   ==================================================== */
+.dashboard-container,
+.dashboard-grid-container {
+  container-type: inline-size;
+  container-name: dashboard;
+}
+
+.bento-grid-container {
+  container-type: inline-size;
+  container-name: bento;
+}
+
+/* Adaptive Bento Grid via Container Queries */
+@container bento (min-width: 280px) {
+  .bento-adaptive-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 2.75rem;
+  }
+}
+
+@container bento (min-width: 480px) {
+  .bento-adaptive-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.75rem;
+  }
+}
+
+@container bento (min-width: 820px) {
+  .bento-adaptive-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3rem;
+  }
+}
+
+/* Dashboard Layout via Container Queries */
+@container dashboard (min-width: 320px) {
+  .dashboard-cq-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+}
+
+@container dashboard (min-width: 960px) {
+  .dashboard-cq-layout {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 2rem;
+  }
+  .dashboard-cq-left {
+    grid-column: span 6 / span 6;
+  }
+  .dashboard-cq-right {
+    grid-column: span 6 / span 6;
+  }
+}
+
+/* Forced Pure White Cards & Mini-Cards rule removed to allow adaptive theme contrast */
+.force-black-card,
+#report-problem-card,
+.light #report-problem-card,
+.dark #report-problem-card,
+.light .force-black-card,
+.dark .force-black-card {
+  background-color: #000000 !important;
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85) !important;
+}
+
+.force-black-card h1, .force-black-card h2, .force-black-card h3, .force-black-card h4, .force-black-card h5, .force-black-card h6,
+.force-black-card p, .force-black-card label, .force-black-card strong, .force-black-card span:not([class*="text-sky-"]):not([class*="text-emerald-"]):not([class*="text-amber-"]),
+#report-problem-card h1, #report-problem-card h2, #report-problem-card h3, #report-problem-card h4, #report-problem-card h5, #report-problem-card h6,
+#report-problem-card p, #report-problem-card label, #report-problem-card strong, #report-problem-card span:not([class*="text-sky-"]):not([class*="text-emerald-"]):not([class*="text-amber-"]) {
+  color: #ffffff !important;
+}
+
+/* Prevent nested backdrop-filter GPU flickering on inner elements */
+.card * [class*="bg-white"],
+.mini-card * [class*="bg-white"],
+.custom-dynamic-card * [class*="bg-white"],
+[class*="bg-white"] * [class*="bg-white"],
+[class*="bg-white"] * [class*="bg-slate-100"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ====================================================
+   WHITE CARDS TEXT COLOR RULES
+   All fonts inside white cards/containers are BLACK (#000000),
+   EXCEPT elements with green, blue, orange, or yellow text.
+   ==================================================== */
+
+/* Preserve original colors for green, blue, orange, and yellow text elements inside white cards */
+[class*="bg-white"] [class*="text-green-"],
+[class*="bg-white"] [class*="text-emerald-"],
+[class*="bg-white"] [class*="text-lime-"],
+[class*="bg-white"] [class*="text-teal-"],
+[class*="bg-white"] [class*="text-blue-"],
+[class*="bg-white"] [class*="text-sky-"],
+[class*="bg-white"] [class*="text-cyan-"],
+[class*="bg-white"] [class*="text-indigo-"],
+[class*="bg-white"] [class*="text-orange-"],
+[class*="bg-white"] [class*="text-amber-"],
+[class*="bg-white"] [class*="text-yellow-"],
+[class*="bg-slate-100"] [class*="text-green-"],
+[class*="bg-slate-100"] [class*="text-emerald-"],
+[class*="bg-slate-100"] [class*="text-lime-"],
+[class*="bg-slate-100"] [class*="text-blue-"],
+[class*="bg-slate-100"] [class*="text-sky-"],
+[class*="bg-slate-100"] [class*="text-cyan-"],
+[class*="bg-slate-100"] [class*="text-orange-"],
+[class*="bg-slate-100"] [class*="text-amber-"],
+[class*="bg-slate-100"] [class*="text-yellow-"] {
+  /* Retain colorful status badges and highlighted text */
+  text-shadow: none;
+}
+
+/* Set all standard text inside white cards/containers to BLACK (#000000) */
+[class*="bg-white"] h1:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+[class*="bg-white"] h2:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+[class*="bg-white"] h3:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+[class*="bg-white"] h4:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+[class*="bg-white"] h5:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+[class*="bg-white"] h6:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+[class*="bg-white"] p:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+[class*="bg-white"] label:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+[class*="bg-white"] span:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+[class*="bg-white"] div:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+[class*="bg-slate-100"] p:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+[class*="bg-slate-100"] h1:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+[class*="bg-slate-100"] h2:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
+[class*="bg-slate-100"] h3:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]) {
+  color: #000000 !important;
+}
+
+[class*="bg-white"] .text-slate-400,
+[class*="bg-white"] .text-slate-500,
+[class*="bg-white"] .text-slate-600,
+[class*="bg-white"] .text-slate-700,
+[class*="bg-slate-100"] .text-slate-400,
+[class*="bg-slate-100"] .text-slate-500,
+[class*="bg-slate-100"] .text-slate-600,
+[class*="bg-slate-100"] .text-slate-700 {
+  color: #000000 !important;
+  font-weight: 600;
+}
+
+/* Ensure Dark Elements (Modals, Hero Badges, Dark Buttons, Dark Banners) Keep White Text */
+.light .keep-white,
+.light .keep-white *,
+.light .keep-white h1,
+.light .keep-white h2,
+.light .keep-white h3,
+.light .keep-white h4,
+.light .keep-white h5,
+.light .keep-white h6,
+.light .keep-white p,
+.light .keep-white span,
+.light .main-hero-weather,
+.light .main-hero-weather *,
+.light .assistant-hero-banner,
+.light .assistant-hero-banner *,
+.light [class*="bg-slate-900"] *,
+.light [class*="bg-slate-950"] *,
+.light [class*="bg-orange-950"] *,
+.light [class*="bg-slate-800"] *,
+.light [class*="bg-sky-900"] *,
+.light [class*="bg-red-600"] *,
+.light [class*="bg-emerald-600"] * {
+  /* Retain light/white text colors inside dark containers */
+  color: inherit;
+}
+
+/* Explicit white text helper inside keep-white or main hero */
+.light .keep-white,
+.light .keep-white *,
+.light .keep-white .text-white,
+.light .keep-white h1,
+.light .keep-white h2,
+.light .keep-white h3,
+.light .keep-white h4,
+.light .keep-white h5,
+.light .keep-white h6,
+.light .keep-white p,
+.main-hero-weather p,
+.light .main-hero-weather p,
+.light .main-hero-weather .text-white,
+div.light .assistant-hero-banner h3,
+div.light .assistant-hero-banner h3 *,
+.light .assistant-hero-banner .text-white,
+.light .assistant-hero-banner h3,
+.light .assistant-hero-banner h3 *,
+.light .assistant-hero-banner h1,
+.light .assistant-hero-banner h2,
+.light .assistant-hero-banner h4,
+.light .assistant-hero-banner p,
+.light .assistant-hero-banner span.keep-white {
+  color: #ffffff !important;
+}
+
+/* Map Adjusts Menu Force White Text & Dark Container in Light/Dark Mode */
+.map-adjusts-menu,
+.light .map-adjusts-menu,
+[class*="map-adjusts-menu"] {
+  background-color: rgba(2, 6, 23, 0.95) !important;
+  background: rgba(2, 6, 23, 0.95) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+div.light .map-adjusts-menu.map-adjusts-menu *,
+div.light .map-adjusts-menu.map-adjusts-menu span,
+div.light .map-adjusts-menu.map-adjusts-menu button,
+div.light .map-adjusts-menu.map-adjusts-menu svg,
+div.light .map-adjusts-menu.map-adjusts-menu .text-white,
+div.light .map-adjusts-menu.map-adjusts-menu .text-slate-300,
+div.light .map-adjusts-menu.map-adjusts-menu div,
+.map-adjusts-menu *,
+.map-adjusts-menu span,
+.map-adjusts-menu button,
+.map-adjusts-menu svg,
+.map-adjusts-menu .text-white,
+.map-adjusts-menu div {
+  color: #ffffff !important;
+}
+
+/* Preserve distinct metric accent colors (Red, Sky, Amber, Emerald) */
+.text-red-400, .light .text-red-400 { color: #f87171 !important; }
+.text-red-500, .light .text-red-500 { color: #ef4444 !important; }
+.text-sky-300, .light .text-sky-300 { color: #7dd3fc !important; }
+.text-sky-400, .light .text-sky-400 { color: #38bdf8 !important; }
+.text-sky-500, .light .text-sky-500 { color: #0ea5e9 !important; }
+.text-amber-300, .light .text-amber-300 { color: #fde047 !important; }
+.text-amber-400, .light .text-amber-400 { color: #fbbf24 !important; }
+.text-amber-500, .light .text-amber-500 { color: #f59e0b !important; }
+.text-emerald-400, .light .text-emerald-400 { color: #34d399 !important; }
+.text-emerald-500, .light .text-emerald-500 { color: #10b981 !important; }
+
+/* Recharts Axis Tick Styling & Contrast Fix */
+.recharts-wrapper,
+.recharts-surface {
+  overflow: visible !important;
+}
+.recharts-text.recharts-cartesian-axis-tick-value {
+  fill: #000000 !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+}
+.recharts-legend-item-text {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+/* Recharts Default Tooltip High Contrast Overrides (White Background, Pure Black Text) */
+.recharts-default-tooltip,
+.recharts-custom-tooltip {
+  background-color: #ffffff !important;
+  border: 2px solid #0f172a !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25) !important;
+  padding: 10px 14px !important;
+  color: #000000 !important;
+}
+.recharts-tooltip-label {
+  color: #000000 !important;
+  font-weight: 900 !important;
+  font-size: 12px !important;
+  margin-bottom: 6px !important;
+  text-transform: uppercase !important;
+  border-bottom: 1px solid #cbd5e1 !important;
+  padding-bottom: 4px !important;
+}
+.recharts-tooltip-item,
+.recharts-tooltip-item-name,
+.recharts-tooltip-item-value,
+.recharts-tooltip-item-unit,
+.recharts-tooltip-item-separator,
+.recharts-default-tooltip *,
+.recharts-custom-tooltip * {
+  color: #000000 !important;
+  font-weight: 800 !important;
+  font-size: 12px !important;
+}
+
+
+
+
+
+

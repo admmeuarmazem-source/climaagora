@@ -5,8 +5,7 @@ compatibility_flags = [ "nodejs_compat" ]
 pages_build_output_dir = "dist"
 
 [vars]
-# Variáveis de ambiente padrão para o deploy no Cloudflare Pages
-NODE_VERSION = "20"
 # Adicione a sua GEMINI_API_KEY no painel do Cloudflare (Secrets)
+
 [build.environment]
 NODE_VERSION = "22"

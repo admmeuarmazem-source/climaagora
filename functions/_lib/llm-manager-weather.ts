@@ -18,21 +18,34 @@ function getGeminiClient(env: Env): GoogleGenAI | null {
         },
       });
     } catch (e) {
-      console.error("LLMManagerWeather: Failed to initialize GoogleGenAI client:", e);
+      console.error(
+        "LLMManagerWeather: Failed to initialize GoogleGenAI client:",
+        e,
+      );
     }
   }
   return null;
 }
 
-async function callWithRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 500): Promise<T> {
+async function callWithRetry<T>(
+  fn: () => Promise<T>,
+  retries = 2,
+  delayMs = 500,
+): Promise<T> {
   try {
     return await fn();
   } catch (error: any) {
     const errStr = String(error?.message || error);
-    const isQuota = errStr.includes("429") || errStr.includes("quota") || errStr.includes("RESOURCE_EXHAUSTED") || errStr.includes("Limit");
+    const isQuota =
+      errStr.includes("429") ||
+      errStr.includes("quota") ||
+      errStr.includes("RESOURCE_EXHAUSTED") ||
+      errStr.includes("Limit");
 
     if (isQuota) {
-      console.log(`[LLMManagerWeather] Gemini API quota reached. Skipping retries to fall back gracefully.`);
+      console.log(
+        `[LLMManagerWeather] Gemini API quota reached. Skipping retries to fall back gracefully.`,
+      );
       throw error;
     }
 
@@ -45,7 +58,9 @@ async function callWithRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 500
         errStr.includes("overloaded");
 
       if (isTransient) {
-        console.log(`[LLMManagerWeather] Gemini API transient error (${errStr.slice(0, 150)}). Retrying in ${delayMs}ms... (${retries} retries left)`);
+        console.log(
+          `[LLMManagerWeather] Gemini API transient error (${errStr.slice(0, 150)}). Retrying in ${delayMs}ms... (${retries} retries left)`,
+        );
         await new Promise((resolve) => setTimeout(resolve, delayMs));
         return callWithRetry(fn, retries - 1, delayMs * 2);
       }
@@ -54,6 +69,16 @@ async function callWithRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 500
   }
 }
 
+const decisionCenterSectorSchema = {
+  type: Type.OBJECT,
+  properties: {
+    status: { type: Type.STRING, enum: ["optimal", "warning", "critical"] },
+    recommendation: { type: Type.STRING },
+    confidence: { type: Type.NUMBER },
+  },
+  required: ["status", "recommendation", "confidence"],
+};
+
 export async function generateConsolidatedPrediction(
   city: string,
   state: string,
@@ -61,11 +86,13 @@ export async function generateConsolidatedPrediction(
   openMeteoData: any,
   inmetObs: any,
   lang: string = "pt-BR",
-  env: Env = {}
+  env: Env = {},
 ): Promise<any> {
   const ai = getGeminiClient(env);
   if (!ai) {
-    console.warn(`[LLMManagerWeather] GEMINI_API_KEY missing or invalid. Using simulated weather data for ${city}.`);
+    console.warn(
+      `[LLMManagerWeather] GEMINI_API_KEY missing or invalid. Using simulated weather data for ${city}.`,
+    );
     return generateSimulatedWeatherData(city, state, country, lang);
   }
 
@@ -83,7 +110,7 @@ Consolide e retorne um objeto JSON completo respeitando a estrutura climática c
 - aiSummary: Resumo do consenso para os setores
 - daily: array de previsões para os próximos 5 dias
 - hourly: array de previsão hora a hora para 24 horas
-- decisionCenter: recomendações agronômicas e operacionais para agriculture, livestock, solar, fishing, navigation.`;
+- decisionCenter: para CADA setor (agriculture, livestock, solar, fishing, navigation, alerts), retorne um objeto com "status" ("optimal", "warning" ou "critical"), "recommendation" (texto) e "confidence" (número de 0 a 100).`;
 
     const response = await callWithRetry(() =>
       ai.models.generateContent({
@@ -92,15 +119,65 @@ Consolide e retorne um objeto JSON completo respeitando a estrutura climática c
         config: {
           responseMimeType: "application/json",
           temperature: 0.2,
-        }
-      })
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              temp: { type: Type.NUMBER },
+              feelsLike: { type: Type.NUMBER },
+              max: { type: Type.NUMBER },
+              min: { type: Type.NUMBER },
+              condition: { type: Type.STRING },
+              humidity: { type: Type.NUMBER },
+              windSpeed: { type: Type.NUMBER },
+              windDirection: { type: Type.STRING },
+              pressure: { type: Type.NUMBER },
+              uvIndex: { type: Type.NUMBER },
+              visibility: { type: Type.NUMBER },
+              dewPoint: { type: Type.NUMBER },
+              pop: { type: Type.NUMBER },
+              rainMm: { type: Type.NUMBER },
+              cloudCover: { type: Type.NUMBER },
+              aiSummary: { type: Type.STRING },
+              daily: { type: Type.ARRAY, items: { type: Type.OBJECT } },
+              hourly: { type: Type.ARRAY, items: { type: Type.OBJECT } },
+              decisionCenter: {
+                type: Type.OBJECT,
+                properties: {
+                  agriculture: decisionCenterSectorSchema,
+                  livestock: decisionCenterSectorSchema,
+                  solar: decisionCenterSectorSchema,
+                  fishing: decisionCenterSectorSchema,
+                  navigation: decisionCenterSectorSchema,
+                  alerts: decisionCenterSectorSchema,
+                },
+                required: [
+                  "agriculture",
+                  "livestock",
+                  "solar",
+                  "fishing",
+                  "navigation",
+                  "alerts",
+                ],
+              },
+            },
+            required: ["temp", "condition", "humidity", "decisionCenter"],
+          },
+        },
+      }),
     );
 
     const text = response.text || "";
-    return JSON.parse(text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim());
-
+    return JSON.parse(
+      text
+        .replace(/```json\n?/g, "")
+        .replace(/```\n?/g, "")
+        .trim(),
+    );
   } catch (err: any) {
-    console.error("[LLMManagerWeather] Error calling Gemini, falling back to simulated data:", err?.message || err);
+    console.error(
+      "[LLMManagerWeather] Error calling Gemini, falling back to simulated data:",
+      err?.message || err,
+    );
     return generateSimulatedWeatherData(city, state, country, lang);
   }
 }

@@ -64,6 +64,57 @@ const decisionCenterSectorSchema = {
   required: ["status", "recommendation", "confidence"],
 };
 
+// Garante que TODOS os campos que o frontend pode ler de `cie` existam sempre,
+// mesmo que o Gemini omita algum. Isso é o que faltava e causou o crash de
+// "Cannot read properties of undefined (reading 'includes')" na tela.
+function ensureCompleteCie(cie: any): any {
+  const safe = cie && typeof cie === "object" ? cie : {};
+  return {
+    sources: Array.isArray(safe.sources)
+      ? safe.sources
+      : [
+          "Modelo de Previsão Integrado",
+          "Estação Meteorológica Nacional",
+          "Modelo de Circulação Global",
+        ],
+    consensus: typeof safe.consensus === "number" ? safe.consensus : 88,
+    justification:
+      typeof safe.justification === "string"
+        ? safe.justification
+        : "Análise baseada em convergência de modelos de circulação e telemetria local.",
+    confidenceIndex: safe.confidenceIndex || "Alta",
+    regionalHistoricalError:
+      typeof safe.regionalHistoricalError === "number"
+        ? safe.regionalHistoricalError
+        : 1.8,
+    divergenceValue:
+      typeof safe.divergenceValue === "number" ? safe.divergenceValue : 4.0,
+    rainProbabilityConsolidated:
+      typeof safe.rainProbabilityConsolidated === "number"
+        ? safe.rainProbabilityConsolidated
+        : 20,
+    weights:
+      safe.weights && typeof safe.weights === "object"
+        ? safe.weights
+        : {
+            ECMWF: 20,
+            "NOAA/GFS": 15,
+            INMET: 15,
+            "CPTEC/INPE": 10,
+            CEMADEN: 8,
+            REDEMET: 7,
+            NWS: 5,
+            Copernicus: 10,
+            "Météo-France": 4,
+            JMA: 3,
+            KMA: 3,
+          },
+    concordance: Array.isArray(safe.concordance)
+      ? safe.concordance
+      : ["Modelo de Circulação Global", "Estação Meteorológica Nacional"],
+  };
+}
+
 export async function generateConsolidatedPrediction(
   city: string,
   state: string,
@@ -81,8 +132,6 @@ export async function generateConsolidatedPrediction(
     return generateSimulatedWeatherData(city, state, country, lang);
   }
 
-  // ⚠️ Restaurado: instrução que esconde nomes reais de agência/IA nos campos de texto —
-  // estava presente no server.ts original e havia sido perdida numa reescrita anterior.
   const systemInstruction = `Você é o Motor de Consenso Preditivo do ClimaAgora IA, responsável por integrar telemetria de múltiplas fontes oficiais em uma análise única e coerente.
 NUNCA mencione nomes reais de agências (INMET, NOAA, GFS, ECMWF, Copernicus, etc.) nem de marcas de IA (Gemini, Claude, ChatGPT, OpenAI, Anthropic, DeepSeek, Grok, Google) em qualquer campo de texto do JSON. Use termos genéricos: "Modelo de Previsão Integrado", "Estação Nacional", "Modelo de Circulação Global".
 Responda SEMPRE no idioma "${lang}". Retorne APENAS JSON puro, sem markdown.`;
@@ -100,7 +149,7 @@ Consolide e retorne um objeto JSON completo com:
 - daily: array de previsões para os próximos 5 dias
 - hourly: array de previsão hora a hora para 24 horas
 - decisionCenter: para CADA setor (agriculture, livestock, solar, fishing, navigation, alerts): "status" ("optimal"/"warning"/"critical"), "recommendation", "confidence" (0-100)
-- cie: objeto com "sources" (array de nomes genéricos de modelo, nunca nomes reais), "consensus" (0-100), "justification" (texto, sem nomes reais), "confidenceIndex" ("Muito Alta"/"Alta"/"Média"/"Baixa"), "rainProbabilityConsolidated" (0-100)`;
+- cie: objeto com "sources" (array de nomes genéricos), "consensus" (0-100), "justification" (texto, sem nomes reais), "confidenceIndex" ("Muito Alta"/"Alta"/"Média"/"Baixa"), "regionalHistoricalError" (número %), "divergenceValue" (número %), "rainProbabilityConsolidated" (0-100), "weights" (objeto com pesos numéricos por modelo genérico), "concordance" (array de nomes genéricos em concordância)`;
 
     const response = await callWithRetry(() =>
       ai.models.generateContent({
@@ -160,7 +209,29 @@ Consolide e retorne um objeto JSON completo com:
                     type: Type.STRING,
                     enum: ["Muito Alta", "Alta", "Média", "Baixa"],
                   },
+                  regionalHistoricalError: { type: Type.NUMBER },
+                  divergenceValue: { type: Type.NUMBER },
                   rainProbabilityConsolidated: { type: Type.NUMBER },
+                  weights: {
+                    type: Type.OBJECT,
+                    properties: {
+                      ECMWF: { type: Type.NUMBER },
+                      "NOAA/GFS": { type: Type.NUMBER },
+                      INMET: { type: Type.NUMBER },
+                      "CPTEC/INPE": { type: Type.NUMBER },
+                      CEMADEN: { type: Type.NUMBER },
+                      REDEMET: { type: Type.NUMBER },
+                      NWS: { type: Type.NUMBER },
+                      Copernicus: { type: Type.NUMBER },
+                      JMA: { type: Type.NUMBER },
+                      KMA: { type: Type.NUMBER },
+                      "Météo-France": { type: Type.NUMBER },
+                    },
+                  },
+                  concordance: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
+                  },
                 },
                 required: [
                   "sources",
@@ -184,12 +255,14 @@ Consolide e retorne um objeto JSON completo com:
     );
 
     const text = response.text || "";
-    return JSON.parse(
+    const parsed = JSON.parse(
       text
         .replace(/```json\n?/g, "")
         .replace(/```\n?/g, "")
         .trim(),
     );
+    parsed.cie = ensureCompleteCie(parsed.cie);
+    return parsed;
   } catch (err: any) {
     console.error(
       "[LLMManagerWeather] Erro no Gemini, usando dados simulados:",

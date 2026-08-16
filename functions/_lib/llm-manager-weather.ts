@@ -178,8 +178,55 @@ Consolide e retorne um objeto JSON completo com:
               rainMm: { type: Type.NUMBER },
               cloudCover: { type: Type.NUMBER },
               aiSummary: { type: Type.STRING },
-              daily: { type: Type.ARRAY, items: { type: Type.OBJECT } },
-              hourly: { type: Type.ARRAY, items: { type: Type.OBJECT } },
+              daily: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    day: { type: Type.STRING },
+                    date: { type: Type.STRING },
+                    max: { type: Type.NUMBER },
+                    min: { type: Type.NUMBER },
+                    pop: { type: Type.NUMBER },
+                    condition: {
+                      type: Type.STRING,
+                      enum: [
+                        "Sunny",
+                        "Clear",
+                        "PartlyCloudy",
+                        "Cloudy",
+                        "Rainy",
+                        "Storm",
+                      ],
+                    },
+                    description: { type: Type.STRING },
+                  },
+                  required: ["day", "date", "max", "min", "pop", "condition"],
+                },
+              },
+              hourly: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    time: { type: Type.STRING },
+                    temp: { type: Type.NUMBER },
+                    pop: { type: Type.NUMBER },
+                    condition: {
+                      type: Type.STRING,
+                      enum: [
+                        "Sunny",
+                        "Clear",
+                        "PartlyCloudy",
+                        "Cloudy",
+                        "Rainy",
+                        "Storm",
+                      ],
+                    },
+                  },
+                  required: ["time", "temp", "pop", "condition"],
+                },
+              },
               decisionCenter: {
                 type: Type.OBJECT,
                 properties: {
@@ -262,6 +309,30 @@ Consolide e retorne um objeto JSON completo com:
         .trim(),
     );
     parsed.cie = ensureCompleteCie(parsed.cie);
+
+    // Rede de segurança: garante que NENHUM item de hourly/daily venha sem `condition`
+    // (ou outros campos), mesmo que o schema falhe por algum motivo — essa era a causa
+    // provável do crash "Cannot read properties of undefined (reading 'includes')".
+    parsed.hourly = (Array.isArray(parsed.hourly) ? parsed.hourly : []).map(
+      (h: any, i: number) => ({
+        time: h?.time || `${i.toString().padStart(2, "0")}:00`,
+        temp: typeof h?.temp === "number" ? h.temp : parsed.temp || 25,
+        pop: typeof h?.pop === "number" ? h.pop : 10,
+        condition: h?.condition || parsed.condition || "Clear",
+      }),
+    );
+    parsed.daily = (Array.isArray(parsed.daily) ? parsed.daily : []).map(
+      (d: any, i: number) => ({
+        day: d?.day || `Dia ${i + 1}`,
+        date: d?.date || "",
+        max: typeof d?.max === "number" ? d.max : parsed.max || 30,
+        min: typeof d?.min === "number" ? d.min : parsed.min || 20,
+        pop: typeof d?.pop === "number" ? d.pop : 10,
+        condition: d?.condition || parsed.condition || "Clear",
+        description: d?.description || "",
+      }),
+    );
+
     return parsed;
   } catch (err: any) {
     console.error(

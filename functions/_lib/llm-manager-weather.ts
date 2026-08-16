@@ -10,12 +10,8 @@ function getGeminiClient(env: Env): GoogleGenAI | null {
   if (apiKey && apiKey !== "MY_GEMINI_API_KEY") {
     try {
       return new GoogleGenAI({
-        apiKey: apiKey,
-        httpOptions: {
-          headers: {
-            "User-Agent": "aistudio-build",
-          },
-        },
+        apiKey,
+        httpOptions: { headers: { "User-Agent": "aistudio-build" } },
       });
     } catch (e) {
       console.error(
@@ -41,14 +37,7 @@ async function callWithRetry<T>(
       errStr.includes("quota") ||
       errStr.includes("RESOURCE_EXHAUSTED") ||
       errStr.includes("Limit");
-
-    if (isQuota) {
-      console.log(
-        `[LLMManagerWeather] Gemini API quota reached. Skipping retries to fall back gracefully.`,
-      );
-      throw error;
-    }
-
+    if (isQuota) throw error;
     if (retries > 0) {
       const isTransient =
         errStr.includes("503") ||
@@ -56,12 +45,8 @@ async function callWithRetry<T>(
         errStr.includes("demand") ||
         errStr.includes("temporary") ||
         errStr.includes("overloaded");
-
       if (isTransient) {
-        console.log(
-          `[LLMManagerWeather] Gemini API transient error (${errStr.slice(0, 150)}). Retrying in ${delayMs}ms... (${retries} retries left)`,
-        );
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        await new Promise((r) => setTimeout(r, delayMs));
         return callWithRetry(fn, retries - 1, delayMs * 2);
       }
     }
@@ -91,32 +76,38 @@ export async function generateConsolidatedPrediction(
   const ai = getGeminiClient(env);
   if (!ai) {
     console.warn(
-      `[LLMManagerWeather] GEMINI_API_KEY missing or invalid. Using simulated weather data for ${city}.`,
+      `[LLMManagerWeather] GEMINI_API_KEY ausente/inválida. Usando dados simulados para ${city}.`,
     );
     return generateSimulatedWeatherData(city, state, country, lang);
   }
 
+  // ⚠️ Restaurado: instrução que esconde nomes reais de agência/IA nos campos de texto —
+  // estava presente no server.ts original e havia sido perdida numa reescrita anterior.
+  const systemInstruction = `Você é o Motor de Consenso Preditivo do ClimaAgora IA, responsável por integrar telemetria de múltiplas fontes oficiais em uma análise única e coerente.
+NUNCA mencione nomes reais de agências (INMET, NOAA, GFS, ECMWF, Copernicus, etc.) nem de marcas de IA (Gemini, Claude, ChatGPT, OpenAI, Anthropic, DeepSeek, Grok, Google) em qualquer campo de texto do JSON. Use termos genéricos: "Modelo de Previsão Integrado", "Estação Nacional", "Modelo de Circulação Global".
+Responda SEMPRE no idioma "${lang}". Retorne APENAS JSON puro, sem markdown.`;
+
   try {
-    const prompt = `Você é o Motor de Consenso Preditivo do ClimaAgora IA.
-Analise a telemetria bruta recebida do Open-Meteo e da Estação Oficial do INMET para a localidade: ${city}, ${state}, ${country}.
+    const prompt = `Analise a telemetria bruta recebida para a localidade: ${city}, ${state}, ${country}.
 
-Dados Open-Meteo: ${JSON.stringify(openMeteoData || {})}
-Observação INMET: ${JSON.stringify(inmetObs || {})}
-Idioma de resposta desejado: ${lang}
+Dados brutos (fonte primária): ${JSON.stringify(openMeteoData || {})}
+Observação de estação oficial: ${JSON.stringify(inmetObs || {})}
 
-Consolide e retorne um objeto JSON completo respeitando a estrutura climática com:
+Consolide e retorne um objeto JSON completo com:
 - temp, feelsLike, max, min, condition (Sunny, Clear, PartlyCloudy, Cloudy, Rainy, Storm)
 - humidity, windSpeed, windDirection, pressure, uvIndex, visibility, dewPoint, pop, rainMm, cloudCover
-- aiSummary: Resumo do consenso para os setores
+- aiSummary: resumo do consenso para os setores, sem citar nomes reais de fonte/IA
 - daily: array de previsões para os próximos 5 dias
 - hourly: array de previsão hora a hora para 24 horas
-- decisionCenter: para CADA setor (agriculture, livestock, solar, fishing, navigation, alerts), retorne um objeto com "status" ("optimal", "warning" ou "critical"), "recommendation" (texto) e "confidence" (número de 0 a 100).`;
+- decisionCenter: para CADA setor (agriculture, livestock, solar, fishing, navigation, alerts): "status" ("optimal"/"warning"/"critical"), "recommendation", "confidence" (0-100)
+- cie: objeto com "sources" (array de nomes genéricos de modelo, nunca nomes reais), "consensus" (0-100), "justification" (texto, sem nomes reais), "confidenceIndex" ("Muito Alta"/"Alta"/"Média"/"Baixa"), "rainProbabilityConsolidated" (0-100)`;
 
     const response = await callWithRetry(() =>
       ai.models.generateContent({
         model: "gemini-3.6-flash",
         contents: prompt,
         config: {
+          systemInstruction,
           responseMimeType: "application/json",
           temperature: 0.2,
           responseSchema: {
@@ -159,8 +150,34 @@ Consolide e retorne um objeto JSON completo respeitando a estrutura climática c
                   "alerts",
                 ],
               },
+              cie: {
+                type: Type.OBJECT,
+                properties: {
+                  sources: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  consensus: { type: Type.NUMBER },
+                  justification: { type: Type.STRING },
+                  confidenceIndex: {
+                    type: Type.STRING,
+                    enum: ["Muito Alta", "Alta", "Média", "Baixa"],
+                  },
+                  rainProbabilityConsolidated: { type: Type.NUMBER },
+                },
+                required: [
+                  "sources",
+                  "consensus",
+                  "justification",
+                  "confidenceIndex",
+                  "rainProbabilityConsolidated",
+                ],
+              },
             },
-            required: ["temp", "condition", "humidity", "decisionCenter"],
+            required: [
+              "temp",
+              "condition",
+              "humidity",
+              "decisionCenter",
+              "cie",
+            ],
           },
         },
       }),
@@ -175,7 +192,7 @@ Consolide e retorne um objeto JSON completo respeitando a estrutura climática c
     );
   } catch (err: any) {
     console.error(
-      "[LLMManagerWeather] Error calling Gemini, falling back to simulated data:",
+      "[LLMManagerWeather] Erro no Gemini, usando dados simulados:",
       err?.message || err,
     );
     return generateSimulatedWeatherData(city, state, country, lang);

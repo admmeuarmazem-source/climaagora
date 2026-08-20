@@ -10178,7 +10178,7 @@ export default function App() {
                       <div>
                         <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                           Monitoramento Ambiental Global de Desastres
-                          <span className="bg-red-600 text-white dark:bg-red-600/30 dark:text-red-300 text-[8px] px-2.5 py-0.5 rounded-full animate-pulse font-black shadow-sm">SINALIZADOR ATIVO</<span className="bg-red-600 text-white text-[8px] px-2.5 py-0.5 rounded-full animate-pulse font-black shadow-sm">SINALIZADOR ATIVO</span>
+                          <span className="bg-red-600 text-white text-[8px] px-2.5 py-0.5 rounded-full animate-pulse font-black shadow-sm">SINALIZADOR ATIVO</span>
                         </h2>
                         <p className="text-xs text-slate-700 dark:text-slate-200 font-bold mt-1">
                           Análise Preditiva do Sistema ClimaAgora IA & Telemetria Multissensorial

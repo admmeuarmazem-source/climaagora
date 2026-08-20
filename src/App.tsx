@@ -1122,15 +1122,19 @@ export default function App() {
           .custom-dynamic-card * {
             color: #ffffff !important;
           }
-          .custom-dynamic-panel {
+                    .custom-dynamic-panel {
             background-color: rgba(2, 6, 23, 0.92) !important;
             border: 1px solid rgba(255, 255, 255, 0.18) !important;
             backdrop-filter: blur(20px) !important;
             color: #ffffff;
           }
         `}
+
+        .badge-force-dark,
+        .badge-force-dark * {
+          color: #0f172a !important;
+        }
       `;
-    };
 
     applyGlobalTheme();
     window.addEventListener('climaagora-theme-change', applyGlobalTheme);
@@ -7310,7 +7314,7 @@ export default function App() {
             <div id="hero-principal" className="lg:col-span-12 flex flex-col items-center justify-center text-center py-10 md:py-16 select-none relative z-10 transition-all duration-500 main-hero-weather keep-white">
               {/* Location Name & Star Button to favorite */}
               <div className="flex items-center gap-2 justify-center mb-1">
-                <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] [text-shadow:_0_2px_12px_rgba(0,0,0,0.85)] flex items-center gap-3 keep-white">
+                <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight !text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] [text-shadow:_0_2px_12px_rgba(0,0,0,0.85)] flex items-center gap-3 keep-white" style={{ color: '#ffffff' }}>
                   {getCityWithState(weather?.city || currentCity, weather?.state, weather?.country)}
                   {loadingWeather && (
                     <RefreshCw className="animate-spin text-sky-400 shrink-0" size={24} />
@@ -7332,10 +7336,10 @@ export default function App() {
 
               {/* Temperature display with giant font */}
               <div className="flex items-start justify-center gap-0.5 mt-2">
-                <span className="text-7xl md:text-9xl font-black tracking-tighter text-white drop-shadow-[0_6px_24px_rgba(0,0,0,0.95)] [text-shadow:_0_4px_16px_rgba(0,0,0,0.85)] keep-white">
+                <span className="text-7xl md:text-9xl font-black tracking-tighter !text-white drop-shadow-[0_6px_24px_rgba(0,0,0,0.95)] [text-shadow:_0_4px_16px_rgba(0,0,0,0.85)] keep-white" style={{ color: '#ffffff' }}>
                   {convertTemp(weather?.temp)}
                 </span>
-                <span className="text-3xl md:text-5xl font-black text-sky-200 mt-2 keep-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">°{tempUnit}</span>
+                <span className="text-3xl md:text-5xl font-black !text-sky-200 mt-2 keep-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" style={{ color: '#bae6fd' }}>°{tempUnit}</span>
               </div>
 
               {/* Condition phrase */}
@@ -7348,11 +7352,11 @@ export default function App() {
 
               {/* High / Low / Sensation */}
               <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs md:text-sm font-bold text-white bg-slate-950/40 hover:bg-slate-950/50 backdrop-blur-md py-2 px-6 rounded-full border border-white/20 mt-4 transition-all duration-300 shadow-lg keep-white">
-                <span className="text-red-400 font-black">Máx: {formatTemp(weather?.max)}</span>
-                <span className="text-white/70 font-normal">|</span>
-                <span className="text-sky-300 font-black">Mín: {formatTemp(weather?.min)}</span>
-                <span className="text-white/70 font-normal">|</span>
-                <span className="text-amber-300 font-black">{lang.startsWith('en') ? 'Feels like' : 'Sensação'}: {formatTemp(weather?.feelsLike ?? ((weather?.temp ?? 25) - 1))}</span>
+                <span className="!text-red-400 font-black" style={{ color: '#f87171' }}>Máx: {formatTemp(weather?.max)}</span>
+                <span className="!text-white/70 font-normal" style={{ color: 'rgba(255,255,255,0.7)' }}>|</span>
+                <span className="!text-sky-300 font-black" style={{ color: '#7dd3fc' }}>Mín: {formatTemp(weather?.min)}</span>
+                <span className="!text-white/70 font-normal" style={{ color: 'rgba(255,255,255,0.7)' }}>|</span>
+                <span className="!text-amber-300 font-black" style={{ color: '#fcd34d' }}>{lang.startsWith('en') ? 'Feels like' : 'Sensação'}: {formatTemp(weather?.feelsLike ?? ((weather?.temp ?? 25) - 1))}</span>
               </div>
             </div>
 
@@ -8201,7 +8205,7 @@ export default function App() {
                         {weather?.inmetObservation?.available ? (
                           <span className="text-xs font-black bg-emerald-200 text-emerald-950 px-2.5 py-0.5 rounded border border-emerald-400">ONLINE</span>
                         ) : (
-                          <span className="text-xs font-bold bg-amber-200 text-amber-950 px-2.5 py-0.5 rounded border border-amber-400">GLOBAL / FALLBACK</span>
+                          <span className="badge-force-dark text-xs font-bold bg-amber-200 text-amber-950 px-2.5 py-0.5 rounded border border-amber-400">GLOBAL / FALLBACK</span>
                         )}
                       </div>
                       {weather?.inmetObservation?.available ? (
@@ -8312,7 +8316,7 @@ export default function App() {
                                            val < 8 ? 'bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/30' :
                                            val < 11 ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30' : 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30';
                         return (
-                          <span className={`text-[8px] font-black border px-1.5 py-0.5 rounded uppercase tracking-wider ${badgeStyle}`}>
+                          <span className={`badge-force-dark text-[8px] font-black border px-1.5 py-0.5 rounded uppercase tracking-wider ${badgeStyle}`}>
                             {label}
                           </span>
                         );
@@ -10173,7 +10177,7 @@ export default function App() {
                       <div>
                         <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                           Monitoramento Ambiental Global de Desastres
-                          <span className="bg-red-600 text-white dark:bg-red-600/30 dark:text-red-300 text-[8px] px-2.5 py-0.5 rounded-full animate-pulse font-black shadow-sm">SINALIZADOR ATIVO</span>
+                          <span className="bg-red-600 text-white dark:bg-red-600/30 dark:text-red-300 text-[8px] px-2.5 py-0.5 rounded-full animate-pulse font-black shadow-sm">SINALIZADOR ATIVO</<span className="bg-red-600 text-white text-[8px] px-2.5 py-0.5 rounded-full animate-pulse font-black shadow-sm">SINALIZADOR ATIVO</span>
                         </h2>
                         <p className="text-xs text-slate-700 dark:text-slate-200 font-bold mt-1">
                           Análise Preditiva do Sistema ClimaAgora IA & Telemetria Multissensorial
@@ -10395,7 +10399,7 @@ export default function App() {
                 </div>
                 <button
                   onClick={() => handleRequestToggleNotifications(!notificationEnabled)}
-                  className={`px-5 py-2 rounded-xl text-xs font-black uppercase transition shrink-0 ${notificationEnabled ? 'bg-red-500/20 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-500/30 hover:bg-red-500/30' : 'bg-[#4A90E2] text-white hover:bg-[#4A90E2]/80'}`}
+                  className={`px-5 py-2 rounded-xl text-xs font-black uppercase transition shrink-0 ${notificationEnabled ? 'badge-force-dark bg-red-500/20 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-500/30 hover:bg-red-500/30' : 'bg-[#4A90E2] text-white hover:bg-[#4A90E2]/80'}`}
                 >
                   {notificationEnabled ? 'Pausar Recebimento' : 'Ativar Recebimento'}
                 </button>
@@ -10407,7 +10411,7 @@ export default function App() {
                 <div className="relative z-10 flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-black text-slate-900 dark:text-white uppercase">Alertas do Navegador (Web Push API)</span>
-                    <span className="bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                    <span className="badge-force-dark bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
                       Padrão: Ativado (Todas as Notificações)
                     </span>
                   </div>
@@ -10462,7 +10466,7 @@ export default function App() {
                   )}
                   <button
                     onClick={() => handleRequestToggleNotifications(false)}
-                    className="px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-300 border border-red-500/30 rounded-xl text-[10px] font-black uppercase tracking-wider transition shrink-0 cursor-pointer"
+                    className="badge-force-dark px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-300 border border-red-500/30 rounded-xl text-[10px] font-black uppercase tracking-wider transition shrink-0 cursor-pointer"
                     title="Desativar alertas requer confirmação explicita dos riscos meteorológicos"
                   >
                     Desativar (Exige Aceitar Riscos)
@@ -10541,7 +10545,7 @@ export default function App() {
                         const allCats = ['storm', 'frost', 'solar', 'marine', 'agriculture', 'wildfire'];
                         saveNotificationSettings(notificationLocations, allCats, notificationEnabled);
                       }}
-                      className="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 rounded-lg transition cursor-pointer"
+                      className="badge-force-dark text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 rounded-lg transition cursor-pointer"
                     >
                       ✓ Ativar Todas
                     </button>
@@ -10573,7 +10577,7 @@ export default function App() {
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase">{cat.label}</span>
-                            {isSelected && <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 rounded">ATIVO</span>}
+                            {isSelected && <span className="badge-force-dark text-[8px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 rounded">ATIVO</span>}
                           </div>
                           <span className="text-[8px] text-slate-600 dark:text-slate-200 font-extrabold block mt-1">{cat.desc}</span>
                         </button>

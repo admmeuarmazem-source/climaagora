@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 @import "leaflet/dist/leaflet.css";
 
 :root {
@@ -18,7 +19,10 @@ html {
   font-size: 104.5%;
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
   font-size: 1.02em;
 }
 
@@ -41,7 +45,7 @@ button, input, select, textarea {
 }
 
 .leaflet-bar a:hover {
-  background-color: #4A90E2 !important;
+  background-color: #4a90e2 !important;
   color: #ffffff !important;
 }
 
@@ -91,7 +95,8 @@ button, input, select, textarea {
 
 /* Electrical discharges flashing animation */
 @keyframes lightning-glow {
-  0%, 100% {
+  0%,
+  100% {
     filter: drop-shadow(0 0 1px #f59e0b);
     opacity: 0.75;
   }
@@ -162,23 +167,94 @@ body {
 }
 
 /* Scaling all headings (h1, h2, h3, h4, h5, h6) by exactly 15% globally */
-h1.text-xs, h2.text-xs, h3.text-xs, h4.text-xs, h5.text-xs, h6.text-xs { font-size: calc(0.75rem * 1.15) !important; }
-h1.text-sm, h2.text-sm, h3.text-sm, h4.text-sm, h5.text-sm, h6.text-sm { font-size: calc(0.875rem * 1.15) !important; }
-h1.text-base, h2.text-base, h3.text-base, h4.text-base, h5.text-base, h6.text-base { font-size: calc(1rem * 1.15) !important; }
-h1.text-lg, h2.text-lg, h3.text-lg, h4.text-lg, h5.text-lg, h6.text-lg { font-size: calc(1.125rem * 1.15) !important; }
-h1.text-xl, h2.text-xl, h3.text-xl, h4.text-xl, h5.text-xl, h6.text-xl { font-size: calc(1.25rem * 1.15) !important; }
-h1.text-2xl, h2.text-2xl, h3.text-2xl, h4.text-2xl, h5.text-2xl, h6.text-2xl { font-size: calc(1.5rem * 1.15) !important; }
-h1.text-3xl, h2.text-3xl, h3.text-3xl, h4.text-3xl, h5.text-3xl, h6.text-3xl { font-size: calc(1.875rem * 1.15) !important; }
-h1.text-4xl, h2.text-4xl, h3.text-4xl, h4.text-4xl, h5.text-4xl, h6.text-4xl { font-size: calc(2.25rem * 1.15) !important; }
-h1.text-5xl, h2.text-5xl, h3.text-5xl, h4.text-5xl, h5.text-5xl, h6.text-5xl { font-size: calc(3rem * 1.15) !important; }
-h1.text-6xl, h2.text-6xl, h3.text-6xl, h4.text-6xl, h5.text-6xl, h6.text-6xl { font-size: calc(3.75rem * 1.15) !important; }
+h1.text-xs,
+h2.text-xs,
+h3.text-xs,
+h4.text-xs,
+h5.text-xs,
+h6.text-xs {
+  font-size: calc(0.75rem * 1.15) !important;
+}
+h1.text-sm,
+h2.text-sm,
+h3.text-sm,
+h4.text-sm,
+h5.text-sm,
+h6.text-sm {
+  font-size: calc(0.875rem * 1.15) !important;
+}
+h1.text-base,
+h2.text-base,
+h3.text-base,
+h4.text-base,
+h5.text-base,
+h6.text-base {
+  font-size: calc(1rem * 1.15) !important;
+}
+h1.text-lg,
+h2.text-lg,
+h3.text-lg,
+h4.text-lg,
+h5.text-lg,
+h6.text-lg {
+  font-size: calc(1.125rem * 1.15) !important;
+}
+h1.text-xl,
+h2.text-xl,
+h3.text-xl,
+h4.text-xl,
+h5.text-xl,
+h6.text-xl {
+  font-size: calc(1.25rem * 1.15) !important;
+}
+h1.text-2xl,
+h2.text-2xl,
+h3.text-2xl,
+h4.text-2xl,
+h5.text-2xl,
+h6.text-2xl {
+  font-size: calc(1.5rem * 1.15) !important;
+}
+h1.text-3xl,
+h2.text-3xl,
+h3.text-3xl,
+h4.text-3xl,
+h5.text-3xl,
+h6.text-3xl {
+  font-size: calc(1.875rem * 1.15) !important;
+}
+h1.text-4xl,
+h2.text-4xl,
+h3.text-4xl,
+h4.text-4xl,
+h5.text-4xl,
+h6.text-4xl {
+  font-size: calc(2.25rem * 1.15) !important;
+}
+h1.text-5xl,
+h2.text-5xl,
+h3.text-5xl,
+h4.text-5xl,
+h5.text-5xl,
+h6.text-5xl {
+  font-size: calc(3rem * 1.15) !important;
+}
+h1.text-6xl,
+h2.text-6xl,
+h3.text-6xl,
+h4.text-6xl,
+h5.text-6xl,
+h6.text-6xl {
+  font-size: calc(3.75rem * 1.15) !important;
+}
 
 /* Custom print media rules for the PDF Report */
 @media print {
   body * {
     visibility: hidden;
   }
-  #printable-pdf-report, #printable-pdf-report * {
+  #printable-pdf-report,
+  #printable-pdf-report * {
     visibility: visible;
   }
   #printable-pdf-report {
@@ -229,10 +305,15 @@ h1.text-6xl, h2.text-6xl, h3.text-6xl, h4.text-6xl, h5.text-6xl, h6.text-6xl { f
 }
 
 @keyframes lightning-flash {
-  0%, 91%, 95%, 98%, 100% {
+  0%,
+  91%,
+  95%,
+  98%,
+  100% {
     opacity: 0;
   }
-  92%, 94% {
+  92%,
+  94% {
     opacity: 0.65;
   }
   96% {
@@ -241,11 +322,16 @@ h1.text-6xl, h2.text-6xl, h3.text-6xl, h4.text-6xl, h5.text-6xl, h6.text-6xl { f
 }
 
 @keyframes lightning-bolt-strike {
-  0%, 91%, 95%, 99%, 100% {
+  0%,
+  91%,
+  95%,
+  99%,
+  100% {
     opacity: 0;
     transform: scale(0.95);
   }
-  92%, 94% {
+  92%,
+  94% {
     opacity: 1;
     transform: scale(1.02);
   }
@@ -256,13 +342,24 @@ h1.text-6xl, h2.text-6xl, h3.text-6xl, h4.text-6xl, h5.text-6xl, h6.text-6xl { f
 }
 
 @keyframes sun-rays-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes frost-shimmer {
-  0%, 100% { opacity: 0.7; transform: scale(1); }
-  50% { opacity: 0.95; transform: scale(1.02); }
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.02);
+  }
 }
 
 .animate-rain-fall {
@@ -298,17 +395,30 @@ h1.text-6xl, h2.text-6xl, h3.text-6xl, h4.text-6xl, h5.text-6xl, h6.text-6xl { f
 }
 
 @keyframes fog-drift {
-  0% { transform: translateX(-8%) translateY(0) scale(1); opacity: 0.25; }
-  50% { transform: translateX(8%) translateY(3%) scale(1.15); opacity: 0.45; }
-  100% { transform: translateX(-8%) translateY(0) scale(1); opacity: 0.25; }
+  0% {
+    transform: translateX(-8%) translateY(0) scale(1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translateX(8%) translateY(3%) scale(1.15);
+    opacity: 0.45;
+  }
+  100% {
+    transform: translateX(-8%) translateY(0) scale(1);
+    opacity: 0.25;
+  }
 }
 .animate-fog-drift {
   animation: fog-drift 20s ease-in-out infinite;
 }
 
 @keyframes float-cloud {
-  0% { transform: translateX(-15%); }
-  100% { transform: translateX(115%); }
+  0% {
+    transform: translateX(-15%);
+  }
+  100% {
+    transform: translateX(115%);
+  }
 }
 .animate-float-cloud-slow {
   animation: float-cloud 80s linear infinite;
@@ -318,8 +428,13 @@ h1.text-6xl, h2.text-6xl, h3.text-6xl, h4.text-6xl, h5.text-6xl, h6.text-6xl { f
 }
 
 @keyframes ocean-wave {
-  0%, 100% { transform: translateY(0) skewX(-2deg); }
-  50% { transform: translateY(6px) skewX(2deg); }
+  0%,
+  100% {
+    transform: translateY(0) skewX(-2deg);
+  }
+  50% {
+    transform: translateY(6px) skewX(2deg);
+  }
 }
 .animate-ocean-wave-1 {
   animation: ocean-wave 6s ease-in-out infinite;
@@ -329,9 +444,18 @@ h1.text-6xl, h2.text-6xl, h3.text-6xl, h4.text-6xl, h5.text-6xl, h6.text-6xl { f
 }
 
 @keyframes lighthouse-beam {
-  0% { transform: rotate(-40deg); opacity: 0.05; }
-  50% { transform: rotate(10deg); opacity: 0.35; }
-  100% { transform: rotate(60deg); opacity: 0.05; }
+  0% {
+    transform: rotate(-40deg);
+    opacity: 0.05;
+  }
+  50% {
+    transform: rotate(10deg);
+    opacity: 0.35;
+  }
+  100% {
+    transform: rotate(60deg);
+    opacity: 0.05;
+  }
 }
 .animate-lighthouse-beam {
   transform-origin: bottom center;
@@ -339,8 +463,13 @@ h1.text-6xl, h2.text-6xl, h3.text-6xl, h4.text-6xl, h5.text-6xl, h6.text-6xl { f
 }
 
 @keyframes vegetation-sway {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(3deg); }
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
 }
 .animate-vegetation-sway {
   transform-origin: bottom center;
@@ -348,8 +477,14 @@ h1.text-6xl, h2.text-6xl, h3.text-6xl, h4.text-6xl, h5.text-6xl, h6.text-6xl { f
 }
 
 @keyframes sky-glow {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 1; filter: saturate(1.15); }
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+    filter: saturate(1.15);
+  }
 }
 .animate-sky-glow {
   animation: sky-glow 12s ease-in-out infinite;
@@ -383,7 +518,7 @@ h1.text-6xl, h2.text-6xl, h3.text-6xl, h4.text-6xl, h5.text-6xl, h6.text-6xl { f
 .global-min-font-16 li,
 .global-min-font-16 ul,
 .global-min-font-16 ol,
-p, 
+p,
 li,
 ul,
 ol {
@@ -391,9 +526,9 @@ ol {
   line-height: 1.62 !important;
 }
 
-.text-slate-300, 
-.text-slate-400, 
-.text-[10px], 
+.text-slate-300,
+.text-slate-400,
+.text-[10px],
 .text-[11px],
 .text-[12px] {
   font-size: 14px !important;
@@ -412,8 +547,8 @@ ol {
 }
 
 /* Retain compact sizing for explicit mono labels, tiny badges/dates at a very legible size */
-span.font-mono, 
-.text-[8px], 
+span.font-mono,
+.text-[8px],
 .text-[9px] {
   font-size: 12px !important; /* Boosted slightly to ensure readability */
 }
@@ -422,7 +557,12 @@ span.font-mono,
    LIGHT THEME STYLING OVERRIDES (MODO CLARO)
    ---------------------------------------------------- */
 .light {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%) !important;
+  background: linear-gradient(
+    135deg,
+    #f8fafc 0%,
+    #e2e8f0 50%,
+    #cbd5e1 100%
+  ) !important;
   color: #0f172a !important;
 }
 
@@ -446,7 +586,7 @@ span.font-mono,
   color: #0f172a;
 }
 
-.light p, 
+.light p,
 .light li,
 .light ul,
 .light ol,
@@ -648,60 +788,116 @@ span.font-mono,
 
 /* Apple Weather-like immersive animations */
 @keyframes apple-rain {
-  0% { transform: translateY(-100%) rotate(15deg); opacity: 0; }
-  50% { opacity: 0.8; }
-  100% { transform: translateY(100vh) rotate(15deg); opacity: 0; }
+  0% {
+    transform: translateY(-100%) rotate(15deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(100vh) rotate(15deg);
+    opacity: 0;
+  }
 }
 .animate-apple-rain {
   animation: apple-rain 1.5s linear infinite;
 }
 
 @keyframes apple-snow {
-  0% { transform: translateY(-10px) translateX(-10px); opacity: 0; }
-  50% { opacity: 0.9; }
-  100% { transform: translateY(100vh) translateX(20px); opacity: 0; }
+  0% {
+    transform: translateY(-10px) translateX(-10px);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(100vh) translateX(20px);
+    opacity: 0;
+  }
 }
 .animate-apple-snow {
   animation: apple-snow 4s ease-in-out infinite;
 }
 
 @keyframes apple-cloud-glide {
-  0% { transform: translateX(-100%); opacity: 0.1; }
-  50% { opacity: 0.45; }
-  100% { transform: translateX(100%); opacity: 0.1; }
+  0% {
+    transform: translateX(-100%);
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0.1;
+  }
 }
 .animate-apple-cloud {
   animation: apple-cloud-glide 22s linear infinite;
 }
 
 @keyframes apple-solar-glow {
-  0%, 100% { transform: scale(1); opacity: 0.25; filter: blur(40px); }
-  50% { transform: scale(1.18); opacity: 0.55; filter: blur(50px); }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.25;
+    filter: blur(40px);
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 0.55;
+    filter: blur(50px);
+  }
 }
 .animate-apple-sun {
   animation: apple-solar-glow 6s ease-in-out infinite;
 }
 
 @keyframes apple-lightning {
-  0%, 94%, 98%, 100% { opacity: 0; }
-  95%, 97% { opacity: 0.95; background-color: rgba(255, 255, 255, 0.95); box-shadow: 0 0 80px 30px rgba(255, 255, 255, 0.8); }
+  0%,
+  94%,
+  98%,
+  100% {
+    opacity: 0;
+  }
+  95%,
+  97% {
+    opacity: 0.95;
+    background-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 80px 30px rgba(255, 255, 255, 0.8);
+  }
 }
 .animate-apple-lightning {
   animation: apple-lightning 5s infinite;
 }
 
 @keyframes apple-star-twinkle {
-  0%, 100% { opacity: 0.3; transform: scale(0.85); }
-  50% { opacity: 1; transform: scale(1.15); }
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
 }
 .animate-apple-star {
   animation: apple-star-twinkle 2.5s ease-in-out infinite;
 }
 
 @keyframes apple-hurricane {
-  0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(180deg) scale(1.1); }
-  100% { transform: rotate(360deg) scale(1); }
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
 }
 .animate-apple-hurricane {
   animation: apple-hurricane 14s linear infinite;
@@ -752,7 +948,9 @@ header.fixed {
   border-radius: 9999px !important;
   box-shadow: 0 16px 45px rgba(0, 0, 0, 0.75) !important;
   pointer-events: auto !important;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out !important;
+  transition:
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.4s ease-out !important;
 }
 
 #fixed-bottom-nav button,
@@ -815,7 +1013,9 @@ header.fixed {
   border: 1px solid rgba(255, 255, 255, 0.25) !important;
   border-radius: 9999px !important;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5) !important;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out !important;
+  transition:
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.4s ease-out !important;
 }
 
 /* Responsiveness for small screens (< 360px and < 320px) */
@@ -1017,7 +1217,11 @@ html.light body,
 .card,
 .mini-card {
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65) !important;
-  transition: opacity 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 /* Mandatory Pure White Cards (#FFFFFF) across all modes for 100% legibility */
@@ -1037,37 +1241,136 @@ html.light body,
   border: 1px solid rgba(203, 213, 225, 0.9) !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
   color: #000000 !important;
-  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 /* Ensure ALL text inside cards stays crisp 100% black by default */
-.custom-dynamic-card h1, .custom-dynamic-card h2, .custom-dynamic-card h3, .custom-dynamic-card h4, .custom-dynamic-card h5, .custom-dynamic-card h6,
-.card h1, .card h2, .card h3, .card h4, .card h5, .card h6,
-.mini-card h1, .mini-card h2, .mini-card h3, .mini-card h4, .mini-card h5, .mini-card h6,
-.dark .custom-dynamic-card h1, .dark .custom-dynamic-card h2, .dark .custom-dynamic-card h3, .dark .custom-dynamic-card h4, .dark .dark .custom-dynamic-card h5, .dark .custom-dynamic-card h6,
-.dark .card h1, .dark .card h2, .dark .card h3, .dark .card h4, .dark .card h5, .dark .card h6,
-.dark .mini-card h1, .dark .mini-card h2, .dark .mini-card h3, .dark .mini-card h4, .dark .mini-card h5, .dark .mini-card h6 {
+.custom-dynamic-card h1,
+.custom-dynamic-card h2,
+.custom-dynamic-card h3,
+.custom-dynamic-card h4,
+.custom-dynamic-card h5,
+.custom-dynamic-card h6,
+.card h1,
+.card h2,
+.card h3,
+.card h4,
+.card h5,
+.card h6,
+.mini-card h1,
+.mini-card h2,
+.mini-card h3,
+.mini-card h4,
+.mini-card h5,
+.mini-card h6,
+.dark .custom-dynamic-card h1,
+.dark .custom-dynamic-card h2,
+.dark .custom-dynamic-card h3,
+.dark .custom-dynamic-card h4,
+.dark .dark .custom-dynamic-card h5,
+.dark .custom-dynamic-card h6,
+.dark .card h1,
+.dark .card h2,
+.dark .card h3,
+.dark .card h4,
+.dark .card h5,
+.dark .card h6,
+.dark .mini-card h1,
+.dark .mini-card h2,
+.dark .mini-card h3,
+.dark .mini-card h4,
+.dark .mini-card h5,
+.dark .mini-card h6 {
   text-shadow: none !important;
   color: #000000 !important;
 }
 
-.custom-dynamic-card p, .card p, .mini-card p,
-.dark .custom-dynamic-card p, .dark .card p, .dark .mini-card p,
-.custom-dynamic-card label, .card label, .mini-card label,
-.dark .custom-dynamic-card label, .dark .card label, .dark .mini-card label,
-.custom-dynamic-card strong, .card strong, .mini-card strong,
-.dark .custom-dynamic-card strong, .dark .card strong, .dark .mini-card strong {
+.custom-dynamic-card p,
+.card p,
+.mini-card p,
+.dark .custom-dynamic-card p,
+.dark .card p,
+.dark .mini-card p,
+.custom-dynamic-card label,
+.card label,
+.mini-card label,
+.dark .custom-dynamic-card label,
+.dark .card label,
+.dark .mini-card label,
+.custom-dynamic-card strong,
+.card strong,
+.mini-card strong,
+.dark .custom-dynamic-card strong,
+.dark .card strong,
+.dark .mini-card strong {
   text-shadow: none !important;
   color: #000000 !important;
 }
 
 /* Global rule: Slate and gray text classes inside cards become black for legibility */
-.custom-dynamic-card [class*="text-slate-"]:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-teal-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-.custom-dynamic-card [class*="text-gray-"]:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-teal-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-.card [class*="text-slate-"]:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-teal-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-.card [class*="text-gray-"]:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-teal-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-.mini-card [class*="text-slate-"]:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-teal-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-.mini-card [class*="text-gray-"]:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-teal-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]) {
+.custom-dynamic-card
+  [class*="text-slate-"]:not([class*="text-green-"]):not(
+    [class*="text-emerald-"]
+  ):not([class*="text-lime-"]):not([class*="text-teal-"]):not(
+    [class*="text-blue-"]
+  ):not([class*="text-sky-"]):not([class*="text-cyan-"]):not(
+    [class*="text-indigo-"]
+  ):not([class*="text-orange-"]):not([class*="text-amber-"]):not(
+    [class*="text-yellow-"]
+  ),
+.custom-dynamic-card
+  [class*="text-gray-"]:not([class*="text-green-"]):not(
+    [class*="text-emerald-"]
+  ):not([class*="text-lime-"]):not([class*="text-teal-"]):not(
+    [class*="text-blue-"]
+  ):not([class*="text-sky-"]):not([class*="text-cyan-"]):not(
+    [class*="text-indigo-"]
+  ):not([class*="text-orange-"]):not([class*="text-amber-"]):not(
+    [class*="text-yellow-"]
+  ),
+.card
+  [class*="text-slate-"]:not([class*="text-green-"]):not(
+    [class*="text-emerald-"]
+  ):not([class*="text-lime-"]):not([class*="text-teal-"]):not(
+    [class*="text-blue-"]
+  ):not([class*="text-sky-"]):not([class*="text-cyan-"]):not(
+    [class*="text-indigo-"]
+  ):not([class*="text-orange-"]):not([class*="text-amber-"]):not(
+    [class*="text-yellow-"]
+  ),
+.card
+  [class*="text-gray-"]:not([class*="text-green-"]):not(
+    [class*="text-emerald-"]
+  ):not([class*="text-lime-"]):not([class*="text-teal-"]):not(
+    [class*="text-blue-"]
+  ):not([class*="text-sky-"]):not([class*="text-cyan-"]):not(
+    [class*="text-indigo-"]
+  ):not([class*="text-orange-"]):not([class*="text-amber-"]):not(
+    [class*="text-yellow-"]
+  ),
+.mini-card
+  [class*="text-slate-"]:not([class*="text-green-"]):not(
+    [class*="text-emerald-"]
+  ):not([class*="text-lime-"]):not([class*="text-teal-"]):not(
+    [class*="text-blue-"]
+  ):not([class*="text-sky-"]):not([class*="text-cyan-"]):not(
+    [class*="text-indigo-"]
+  ):not([class*="text-orange-"]):not([class*="text-amber-"]):not(
+    [class*="text-yellow-"]
+  ),
+.mini-card
+  [class*="text-gray-"]:not([class*="text-green-"]):not(
+    [class*="text-emerald-"]
+  ):not([class*="text-lime-"]):not([class*="text-teal-"]):not(
+    [class*="text-blue-"]
+  ):not([class*="text-sky-"]):not([class*="text-cyan-"]):not(
+    [class*="text-indigo-"]
+  ):not([class*="text-orange-"]):not([class*="text-amber-"]):not(
+    [class*="text-yellow-"]
+  ) {
   color: #000000 !important;
 }
 
@@ -1197,10 +1500,32 @@ footer {
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85) !important;
 }
 
-.force-black-card h1, .force-black-card h2, .force-black-card h3, .force-black-card h4, .force-black-card h5, .force-black-card h6,
-.force-black-card p, .force-black-card label, .force-black-card strong, .force-black-card span:not([class*="text-sky-"]):not([class*="text-emerald-"]):not([class*="text-amber-"]),
-#report-problem-card h1, #report-problem-card h2, #report-problem-card h3, #report-problem-card h4, #report-problem-card h5, #report-problem-card h6,
-#report-problem-card p, #report-problem-card label, #report-problem-card strong, #report-problem-card span:not([class*="text-sky-"]):not([class*="text-emerald-"]):not([class*="text-amber-"]) {
+.force-black-card h1,
+.force-black-card h2,
+.force-black-card h3,
+.force-black-card h4,
+.force-black-card h5,
+.force-black-card h6,
+.force-black-card p,
+.force-black-card label,
+.force-black-card strong,
+.force-black-card
+  span:not([class*="text-sky-"]):not([class*="text-emerald-"]):not(
+    [class*="text-amber-"]
+  ),
+#report-problem-card h1,
+#report-problem-card h2,
+#report-problem-card h3,
+#report-problem-card h4,
+#report-problem-card h5,
+#report-problem-card h6,
+#report-problem-card p,
+#report-problem-card label,
+#report-problem-card strong,
+#report-problem-card
+  span:not([class*="text-sky-"]):not([class*="text-emerald-"]):not(
+    [class*="text-amber-"]
+  ) {
   color: #ffffff !important;
 }
 
@@ -1246,20 +1571,118 @@ footer {
 }
 
 /* Set all standard text inside white cards/containers to BLACK (#000000) */
-[class*="bg-white"] h1:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-[class*="bg-white"] h2:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-[class*="bg-white"] h3:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-[class*="bg-white"] h4:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-[class*="bg-white"] h5:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-[class*="bg-white"] h6:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-[class*="bg-white"] p:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-[class*="bg-white"] label:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-[class*="bg-white"] span:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-[class*="bg-white"] div:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-[class*="bg-slate-100"] p:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-[class*="bg-slate-100"] h1:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-[class*="bg-slate-100"] h2:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]),
-[class*="bg-slate-100"] h3:not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-lime-"]):not([class*="text-blue-"]):not([class*="text-sky-"]):not([class*="text-cyan-"]):not([class*="text-indigo-"]):not([class*="text-orange-"]):not([class*="text-amber-"]):not([class*="text-yellow-"]) {
+[class*="bg-white"]
+  h1:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]),
+[class*="bg-white"]
+  h2:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]),
+[class*="bg-white"]
+  h3:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]),
+[class*="bg-white"]
+  h4:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]),
+[class*="bg-white"]
+  h5:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]),
+[class*="bg-white"]
+  h6:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]),
+[class*="bg-white"]
+  p:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]),
+[class*="bg-white"]
+  label:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]),
+[class*="bg-white"]
+  span:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]),
+[class*="bg-white"]
+  div:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]),
+[class*="bg-slate-100"]
+  p:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]),
+[class*="bg-slate-100"]
+  h1:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]),
+[class*="bg-slate-100"]
+  h2:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]),
+[class*="bg-slate-100"]
+  h3:not([class*="text-green-"]):not([class*="text-emerald-"]):not(
+    [class*="text-lime-"]
+  ):not([class*="text-blue-"]):not([class*="text-sky-"]):not(
+    [class*="text-cyan-"]
+  ):not([class*="text-indigo-"]):not([class*="text-orange-"]):not(
+    [class*="text-amber-"]
+  ):not([class*="text-yellow-"]) {
   color: #000000 !important;
 }
 
@@ -1355,16 +1778,46 @@ div.light .map-adjusts-menu.map-adjusts-menu div,
 }
 
 /* Preserve distinct metric accent colors (Red, Sky, Amber, Emerald) */
-.text-red-400, .light .text-red-400 { color: #f87171 !important; }
-.text-red-500, .light .text-red-500 { color: #ef4444 !important; }
-.text-sky-300, .light .text-sky-300 { color: #7dd3fc !important; }
-.text-sky-400, .light .text-sky-400 { color: #38bdf8 !important; }
-.text-sky-500, .light .text-sky-500 { color: #0ea5e9 !important; }
-.text-amber-300, .light .text-amber-300 { color: #fde047 !important; }
-.text-amber-400, .light .text-amber-400 { color: #fbbf24 !important; }
-.text-amber-500, .light .text-amber-500 { color: #f59e0b !important; }
-.text-emerald-400, .light .text-emerald-400 { color: #34d399 !important; }
-.text-emerald-500, .light .text-emerald-500 { color: #10b981 !important; }
+.text-red-400,
+.light .text-red-400 {
+  color: #f87171 !important;
+}
+.text-red-500,
+.light .text-red-500 {
+  color: #ef4444 !important;
+}
+.text-sky-300,
+.light .text-sky-300 {
+  color: #7dd3fc !important;
+}
+.text-sky-400,
+.light .text-sky-400 {
+  color: #38bdf8 !important;
+}
+.text-sky-500,
+.light .text-sky-500 {
+  color: #0ea5e9 !important;
+}
+.text-amber-300,
+.light .text-amber-300 {
+  color: #fde047 !important;
+}
+.text-amber-400,
+.light .text-amber-400 {
+  color: #fbbf24 !important;
+}
+.text-amber-500,
+.light .text-amber-500 {
+  color: #f59e0b !important;
+}
+.text-emerald-400,
+.light .text-emerald-400 {
+  color: #34d399 !important;
+}
+.text-emerald-500,
+.light .text-emerald-500 {
+  color: #10b981 !important;
+}
 
 /* Recharts Axis Tick Styling & Contrast Fix */
 .recharts-wrapper,
@@ -1411,9 +1864,182 @@ div.light .map-adjusts-menu.map-adjusts-menu div,
   font-weight: 800 !important;
   font-size: 12px !important;
 }
+/* ============================================================
+   MODO CLARO FORÇADO — substitui o bloco de contraste anterior.
+   Cobre QUALQUER painel escuro pelo padrão de cor usado (não só
+   .card/.mini-card), mais o <header> pelo elemento HTML direto,
+   já que não depende de saber a classe exata usada nele.
+   ============================================================ */
 
+/* 1) Cards oficiais do projeto */
+.card,
+.mini-card,
+.custom-dynamic-card {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+.card,
+.mini-card,
+.custom-dynamic-card,
+.card *,
+.mini-card *,
+.custom-dynamic-card * {
+  color: #0f172a !important;
+}
 
+/* 2) QUALQUER painel/div com fundo escuro típico (slate/gray/zinc/neutral/black),
+      mesmo fora de .card — cobre os <div> ad hoc que não usam essas classes */
+[class*="bg-slate-900"],
+[class*="bg-slate-950"],
+[class*="bg-slate-800"],
+[class*="bg-gray-900"],
+[class*="bg-gray-950"],
+[class*="bg-gray-800"],
+[class*="bg-zinc-900"],
+[class*="bg-zinc-950"],
+[class*="bg-neutral-900"],
+[class*="bg-neutral-950"],
+[class*="bg-black"] {
+  background-color: #ffffff !important;
+}
+[class*="bg-slate-900"] *,
+[class*="bg-slate-950"] *,
+[class*="bg-slate-800"] *,
+[class*="bg-gray-900"] *,
+[class*="bg-gray-950"] *,
+[class*="bg-gray-800"] *,
+[class*="bg-zinc-900"] *,
+[class*="bg-zinc-950"] *,
+[class*="bg-neutral-900"] *,
+[class*="bg-neutral-950"] *,
+[class*="bg-black"] * {
+  color: #0f172a !important;
+}
 
+/* 3) Cabeçalho — forçado pelo elemento <header> em si, não pela classe */
+header,
+header *,
+[role="banner"],
+[role="banner"] * {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
 
+/* 4) SVGs e ícones herdam a cor do texto ao redor */
+.card svg,
+.mini-card svg,
+.custom-dynamic-card svg,
+header svg {
+  color: inherit !important;
+}
 
-
+/* 5) Botões/badges com fundo colorido: SEMPRE texto branco.
+      Especificidade maior que as regras acima ([class*=...] + *),
+      então vence automaticamente mesmo dentro de card/header brancos. */
+button[class*="bg-red-"],
+span[class*="bg-red-"],
+div[class*="bg-red-"],
+button[class*="bg-blue-"],
+span[class*="bg-blue-"],
+div[class*="bg-blue-"],
+button[class*="bg-green-"],
+span[class*="bg-green-"],
+div[class*="bg-green-"],
+button[class*="bg-amber-"],
+span[class*="bg-amber-"],
+div[class*="bg-amber-"],
+button[class*="bg-yellow-"],
+span[class*="bg-yellow-"],
+div[class*="bg-yellow-"],
+button[class*="bg-fuchsia-"],
+span[class*="bg-fuchsia-"],
+div[class*="bg-fuchsia-"],
+button[class*="bg-purple-"],
+span[class*="bg-purple-"],
+div[class*="bg-purple-"],
+button[class*="bg-cyan-"],
+span[class*="bg-cyan-"],
+div[class*="bg-cyan-"],
+button[class*="bg-emerald-"],
+span[class*="bg-emerald-"],
+div[class*="bg-emerald-"],
+button[class*="bg-orange-"],
+span[class*="bg-orange-"],
+div[class*="bg-orange-"],
+button[class*="bg-pink-"],
+span[class*="bg-pink-"],
+div[class*="bg-pink-"],
+button[class*="bg-indigo-"],
+span[class*="bg-indigo-"],
+div[class*="bg-indigo-"],
+button[class*="bg-teal-"],
+span[class*="bg-teal-"],
+div[class*="bg-teal-"],
+button[class*="bg-lime-"],
+span[class*="bg-lime-"],
+div[class*="bg-lime-"],
+button[class*="bg-rose-"],
+span[class*="bg-rose-"],
+div[class*="bg-rose-"],
+button[class*="bg-sky-"],
+span[class*="bg-sky-"],
+div[class*="bg-sky-"],
+button[class*="bg-violet-"],
+span[class*="bg-violet-"],
+div[class*="bg-violet-"] {
+  color: #ffffff !important;
+}
+button[class*="bg-red-"] *,
+span[class*="bg-red-"] *,
+div[class*="bg-red-"] *,
+button[class*="bg-blue-"] *,
+span[class*="bg-blue-"] *,
+div[class*="bg-blue-"] *,
+button[class*="bg-green-"] *,
+span[class*="bg-green-"] *,
+div[class*="bg-green-"] *,
+button[class*="bg-amber-"] *,
+span[class*="bg-amber-"] *,
+div[class*="bg-amber-"] *,
+button[class*="bg-yellow-"] *,
+span[class*="bg-yellow-"] *,
+div[class*="bg-yellow-"] *,
+button[class*="bg-fuchsia-"] *,
+span[class*="bg-fuchsia-"] *,
+div[class*="bg-fuchsia-"] *,
+button[class*="bg-purple-"] *,
+span[class*="bg-purple-"] *,
+div[class*="bg-purple-"] *,
+button[class*="bg-cyan-"] *,
+span[class*="bg-cyan-"] *,
+div[class*="bg-cyan-"] *,
+button[class*="bg-emerald-"] *,
+span[class*="bg-emerald-"] *,
+div[class*="bg-emerald-"] *,
+button[class*="bg-orange-"] *,
+span[class*="bg-orange-"] *,
+div[class*="bg-orange-"] *,
+button[class*="bg-pink-"] *,
+span[class*="bg-pink-"] *,
+div[class*="bg-pink-"] *,
+button[class*="bg-indigo-"] *,
+span[class*="bg-indigo-"] *,
+div[class*="bg-indigo-"] *,
+button[class*="bg-teal-"] *,
+span[class*="bg-teal-"] *,
+div[class*="bg-teal-"] *,
+button[class*="bg-lime-"] *,
+span[class*="bg-lime-"] *,
+div[class*="bg-lime-"] *,
+button[class*="bg-rose-"] *,
+span[class*="bg-rose-"] *,
+div[class*="bg-rose-"] *,
+button[class*="bg-sky-"] *,
+span[class*="bg-sky-"] *,
+div[class*="bg-sky-"] *,
+button[class*="bg-violet-"] *,
+span[class*="bg-violet-"] *,
+div[class*="bg-violet-"] * {
+  color: #ffffff !important;
+}

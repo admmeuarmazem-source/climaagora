@@ -1,5 +1,4 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { generateSimulatedWeatherData } from "../_shared/simulated-weather";
 
 export interface Env {
   GEMINI_API_KEY?: string;
@@ -7,20 +6,18 @@ export interface Env {
 
 function getGeminiClient(env: Env): GoogleGenAI | null {
   const apiKey = env.GEMINI_API_KEY;
-  if (apiKey && apiKey !== "MY_GEMINI_API_KEY") {
-    try {
-      return new GoogleGenAI({
-        apiKey,
-        httpOptions: { headers: { "User-Agent": "aistudio-build" } },
-      });
-    } catch (e) {
-      console.error(
-        "LLMManagerWeather: Failed to initialize GoogleGenAI client:",
-        e,
-      );
-    }
+
+  if (!apiKey || apiKey === "MY_GEMINI_API_KEY") return null;
+
+  try {
+    return new GoogleGenAI({
+      apiKey,
+      httpOptions: { headers: { "User-Agent": "aistudio-build" } },
+    });
+  } catch (error) {
+    console.error("[LLMManagerWeather] Falha ao inicializar Gemini:", error);
+    return null;
   }
-  return null;
 }
 
 async function callWithRetry<T>(
@@ -31,87 +28,263 @@ async function callWithRetry<T>(
   try {
     return await fn();
   } catch (error: any) {
-    const errStr = String(error?.message || error);
-    const isQuota =
-      errStr.includes("429") ||
-      errStr.includes("quota") ||
-      errStr.includes("RESOURCE_EXHAUSTED") ||
-      errStr.includes("Limit");
-    if (isQuota) throw error;
-    if (retries > 0) {
-      const isTransient =
-        errStr.includes("503") ||
-        errStr.includes("UNAVAILABLE") ||
-        errStr.includes("demand") ||
-        errStr.includes("temporary") ||
-        errStr.includes("overloaded");
-      if (isTransient) {
-        await new Promise((r) => setTimeout(r, delayMs));
-        return callWithRetry(fn, retries - 1, delayMs * 2);
-      }
+    const message = String(error?.message || error);
+    const transient =
+      message.includes("503") ||
+      message.includes("UNAVAILABLE") ||
+      message.includes("temporary") ||
+      message.includes("overloaded");
+
+    if (transient && retries > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      return callWithRetry(fn, retries - 1, delayMs * 2);
     }
+
     throw error;
   }
 }
 
-const decisionCenterSectorSchema = {
-  type: Type.OBJECT,
-  properties: {
-    status: { type: Type.STRING, enum: ["optimal", "warning", "critical"] },
-    recommendation: { type: Type.STRING },
-    confidence: { type: Type.NUMBER },
-  },
-  required: ["status", "recommendation", "confidence"],
-};
+function weatherCondition(code: number | undefined): string {
+  if (code === undefined || !Number.isFinite(code)) return "Clear";
+  if (code === 0) return "Sunny";
+  if ([1, 2].includes(code)) return "PartlyCloudy";
+  if (code === 3) return "Cloudy";
+  if ([45, 48].includes(code)) return "Cloudy";
+  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code))
+    return "Rainy";
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return "Rainy";
+  if ([95, 96, 99].includes(code)) return "Storm";
+  return "Cloudy";
+}
 
-// Garante que TODOS os campos que o frontend pode ler de `cie` existam sempre,
-// mesmo que o Gemini omita algum. Isso é o que faltava e causou o crash de
-// "Cannot read properties of undefined (reading 'includes')" na tela.
-function ensureCompleteCie(cie: any): any {
+function compassDirection(degrees: number | undefined): string {
+  if (typeof degrees !== "number" || !Number.isFinite(degrees)) return "N/A";
+  const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  return dirs[Math.round(degrees / 45) % 8];
+}
+
+function num(value: unknown, fallback = 0): number {
+  const n = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function arrayValue(
+  obj: any,
+  key: string,
+  index: number,
+  fallback = 0,
+): number {
+  return num(obj?.[key]?.[index], fallback);
+}
+
+function ensureCompleteDecisionCenter(dc: any): any {
+  const safe = dc && typeof dc === "object" ? dc : {};
+  const defaults = {
+    agriculture: [
+      "optimal",
+      "Monitore temperatura, chuva e umidade antes das operações.",
+      75,
+    ],
+    livestock: [
+      "optimal",
+      "Monitore conforto térmico, água e sombra do rebanho.",
+      75,
+    ],
+    solar: ["optimal", "Avalie nebulosidade e irradiação para a geração.", 75],
+    fishing: [
+      "optimal",
+      "Verifique vento, chuva e condições locais antes de sair.",
+      75,
+    ],
+    navigation: [
+      "optimal",
+      "Considere vento, chuva e visibilidade para navegação.",
+      75,
+    ],
+    alerts: [
+      "optimal",
+      "Nenhum alerta severo identificado pelos dados recebidos.",
+      80,
+    ],
+  } as const;
+
+  const result: any = {};
+  for (const [key, fallback] of Object.entries(defaults)) {
+    const value = safe[key];
+    result[key] =
+      value && typeof value === "object"
+        ? {
+            status: value.status || fallback[0],
+            recommendation: value.recommendation || fallback[1],
+            confidence: num(value.confidence, fallback[2]),
+          }
+        : {
+            status: fallback[0],
+            recommendation: fallback[1],
+            confidence: fallback[2],
+          };
+  }
+  return result;
+}
+
+function ensureCompleteCie(cie: any, hasInmet: boolean): any {
   const safe = cie && typeof cie === "object" ? cie : {};
   return {
-    sources: Array.isArray(safe.sources)
-      ? safe.sources
-      : [
-          "Modelo de Previsão Integrado",
-          "Estação Meteorológica Nacional",
-          "Modelo de Circulação Global",
-        ],
-    consensus: typeof safe.consensus === "number" ? safe.consensus : 88,
+    sources:
+      Array.isArray(safe.sources) && safe.sources.length
+        ? safe.sources
+        : hasInmet
+          ? ["Open-Meteo", "INMET"]
+          : ["Open-Meteo"],
+    consensus: num(safe.consensus, hasInmet ? 88 : 82),
     justification:
-      typeof safe.justification === "string"
+      typeof safe.justification === "string" && safe.justification
         ? safe.justification
-        : "Análise baseada em convergência de modelos de circulação e telemetria local.",
-    confidenceIndex: safe.confidenceIndex || "Alta",
-    regionalHistoricalError:
-      typeof safe.regionalHistoricalError === "number"
-        ? safe.regionalHistoricalError
-        : 1.8,
-    divergenceValue:
-      typeof safe.divergenceValue === "number" ? safe.divergenceValue : 4.0,
-    rainProbabilityConsolidated:
-      typeof safe.rainProbabilityConsolidated === "number"
-        ? safe.rainProbabilityConsolidated
-        : 20,
+        : "Consolidação baseada nos dados meteorológicos disponíveis para as coordenadas consultadas.",
+    confidenceIndex: safe.confidenceIndex || (hasInmet ? "Alta" : "Média"),
+    regionalHistoricalError: num(safe.regionalHistoricalError, 0),
+    divergenceValue: num(safe.divergenceValue, 0),
+    rainProbabilityConsolidated: num(safe.rainProbabilityConsolidated, 0),
     weights:
       safe.weights && typeof safe.weights === "object"
         ? safe.weights
-        : {
-            ECMWF: 20,
-            "NOAA/GFS": 15,
-            INMET: 15,
-            "CPTEC/INPE": 10,
-            CEMADEN: 8,
-            REDEMET: 7,
-            NWS: 5,
-            Copernicus: 10,
-            "Météo-France": 4,
-            JMA: 3,
-            KMA: 3,
-          },
-    concordance: Array.isArray(safe.concordance)
-      ? safe.concordance
-      : ["Modelo de Circulação Global", "Estação Meteorológica Nacional"],
+        : { "Open-Meteo": 70, INMET: hasInmet ? 30 : 0 },
+    concordance:
+      Array.isArray(safe.concordance) && safe.concordance.length
+        ? safe.concordance
+        : ["Dados meteorológicos disponíveis"],
+  };
+}
+
+function buildRealWeatherData(
+  city: string,
+  state: string,
+  country: string,
+  openMeteoData: any,
+  inmetObs: any,
+  lang: string,
+): any {
+  const current = openMeteoData?.current || {};
+  const hourly = openMeteoData?.hourly || {};
+  const daily = openMeteoData?.daily || {};
+
+  const currentTemp = num(current.temperature_2m);
+  const currentHumidity = num(current.relative_humidity_2m);
+  const currentWind = num(current.wind_speed_10m);
+  const currentPressure = num(current.surface_pressure);
+  const currentCode = num(current.weather_code, 0);
+
+  const firstHourly = Math.max(
+    0,
+    Array.isArray(hourly.time)
+      ? hourly.time.findIndex(
+          (time: string) => time >= String(current.time || ""),
+        )
+      : -1,
+  );
+  const startIndex = firstHourly >= 0 ? firstHourly : 0;
+
+  const max = arrayValue(
+    daily,
+    "temperature_2m_max",
+    0,
+    inmetObs?.tempMax ?? currentTemp,
+  );
+  const min = arrayValue(
+    daily,
+    "temperature_2m_min",
+    0,
+    inmetObs?.tempMin ?? currentTemp,
+  );
+  const pop = arrayValue(daily, "precipitation_probability_max", 0, 0);
+
+  const hourlyResult = Array.from({ length: 24 }, (_, offset) => {
+    const index = startIndex + offset;
+    const time = hourly.time?.[index] || "";
+    return {
+      time: time
+        ? String(time).slice(11, 16)
+        : `${String((new Date().getHours() + offset) % 24).padStart(2, "0")}:00`,
+      temp: arrayValue(hourly, "temperature_2m", index, currentTemp),
+      pop: arrayValue(hourly, "precipitation_probability", index, pop),
+      condition: weatherCondition(
+        arrayValue(hourly, "weather_code", index, currentCode),
+      ),
+    };
+  });
+
+  const dailyResult = Array.from(
+    { length: Math.min(5, Array.isArray(daily.time) ? daily.time.length : 0) },
+    (_, index) => {
+      const date = String(daily.time[index] || "");
+      const dateObj = date ? new Date(`${date}T12:00:00`) : new Date();
+      return {
+        day:
+          index === 0
+            ? lang.toLowerCase().startsWith("en")
+              ? "Today"
+              : "Hoje"
+            : new Intl.DateTimeFormat(lang, { weekday: "long" }).format(
+                dateObj,
+              ),
+        date: dateObj.toLocaleDateString(lang, {
+          day: "numeric",
+          month: "short",
+        }),
+        max: arrayValue(daily, "temperature_2m_max", index, max),
+        min: arrayValue(daily, "temperature_2m_min", index, min),
+        pop: arrayValue(daily, "precipitation_probability_max", index, 0),
+        condition: weatherCondition(
+          arrayValue(daily, "weather_code", index, currentCode),
+        ),
+        description: "",
+      };
+    },
+  );
+
+  const hasInmet = Boolean(inmetObs?.available);
+
+  return {
+    city,
+    state,
+    country,
+    temp: currentTemp,
+    feelsLike: num(current.apparent_temperature, currentTemp),
+    max,
+    min,
+    humidity: currentHumidity,
+    uvIndex: num(
+      current.uv_index,
+      arrayValue(hourly, "uv_index", startIndex, 0),
+    ),
+    pressure: currentPressure,
+    visibility: num(current.visibility, 0) / 1000,
+    windSpeed: currentWind,
+    windDirection: compassDirection(num(current.wind_direction_10m, NaN)),
+    condition: weatherCondition(currentCode),
+    dewPoint: num(current.dew_point_2m, 0),
+    pop,
+    rainMm: num(current.rain, num(current.precipitation, 0)),
+    cloudCover: num(current.cloud_cover, 0),
+    hourly: hourlyResult,
+    daily: dailyResult,
+    aiSummary: hasInmet
+      ? "Dados meteorológicos consolidados a partir da previsão por coordenadas e de observação municipal disponível."
+      : "Dados meteorológicos consolidados a partir da previsão por coordenadas.",
+    decisionCenter: ensureCompleteDecisionCenter(null),
+    cie: ensureCompleteCie(null, hasInmet),
+    dataSource: {
+      primary: "Open-Meteo",
+      secondary: hasInmet ? "INMET" : null,
+      realData: true,
+      simulated: false,
+      coordinates: {
+        latitude: num(openMeteoData?.latitude),
+        longitude: num(openMeteoData?.longitude),
+      },
+      timezone: openMeteoData?.timezone || "auto",
+      updatedAt: current.time || null,
+    },
   };
 }
 
@@ -121,36 +294,61 @@ export async function generateConsolidatedPrediction(
   country: string,
   openMeteoData: any,
   inmetObs: any,
-  lang: string = "pt-BR",
+  lang = "pt-BR",
   env: Env = {},
 ): Promise<any> {
-  const ai = getGeminiClient(env);
-  if (!ai) {
-    console.warn(
-      `[LLMManagerWeather] GEMINI_API_KEY ausente/inválida. Usando dados simulados para ${city}.`,
+  if (
+    !openMeteoData?.current ||
+    !openMeteoData?.daily ||
+    !openMeteoData?.hourly
+  ) {
+    throw new Error(
+      "A fonte meteorológica principal não retornou dados suficientes.",
     );
-    return generateSimulatedWeatherData(city, state, country, lang);
   }
 
-  const systemInstruction = `Você é o Motor de Consenso Preditivo do ClimaAgora IA, responsável por integrar telemetria de múltiplas fontes oficiais em uma análise única e coerente.
-NUNCA mencione nomes reais de agências (INMET, NOAA, GFS, ECMWF, Copernicus, etc.) nem de marcas de IA (Gemini, Claude, ChatGPT, OpenAI, Anthropic, DeepSeek, Grok, Google) em qualquer campo de texto do JSON. Use termos genéricos: "Modelo de Previsão Integrado", "Estação Nacional", "Modelo de Circulação Global".
-Responda SEMPRE no idioma "${lang}". Retorne APENAS JSON puro, sem markdown.`;
+  const base = buildRealWeatherData(
+    city,
+    state,
+    country,
+    openMeteoData,
+    inmetObs,
+    lang,
+  );
+
+  const ai = getGeminiClient(env);
+  if (!ai) return base;
+
+  const systemInstruction = `Você é o analista textual do ClimaAgora IA.
+Receba dados meteorológicos já calculados e NÃO altere, estime, invente ou substitua nenhum valor meteorológico.
+Responda sempre no idioma "${lang}".
+Retorne apenas JSON válido. Gere somente resumo, recomendações e avaliação de consenso.`;
+
+  const prompt = `Localidade: ${city}, ${state}, ${country}
+Dados meteorológicos reais:
+${JSON.stringify({
+  temp: base.temp,
+  feelsLike: base.feelsLike,
+  max: base.max,
+  min: base.min,
+  humidity: base.humidity,
+  windSpeed: base.windSpeed,
+  windDirection: base.windDirection,
+  pressure: base.pressure,
+  uvIndex: base.uvIndex,
+  pop: base.pop,
+  condition: base.condition,
+  daily: base.daily,
+  inmet: inmetObs?.available ? inmetObs : null,
+})}
+
+Gere:
+- aiSummary: resumo curto e factual;
+- decisionCenter: agriculture, livestock, solar, fishing, navigation e alerts;
+- cie: sources, consensus, justification, confidenceIndex, regionalHistoricalError, divergenceValue, rainProbabilityConsolidated, weights e concordance.
+Não altere qualquer número meteorológico da entrada.`;
 
   try {
-    const prompt = `Analise a telemetria bruta recebida para a localidade: ${city}, ${state}, ${country}.
-
-Dados brutos (fonte primária): ${JSON.stringify(openMeteoData || {})}
-Observação de estação oficial: ${JSON.stringify(inmetObs || {})}
-
-Consolide e retorne um objeto JSON completo com:
-- temp, feelsLike, max, min, condition (Sunny, Clear, PartlyCloudy, Cloudy, Rainy, Storm)
-- humidity, windSpeed, windDirection, pressure, uvIndex, visibility, dewPoint, pop, rainMm, cloudCover
-- aiSummary: resumo do consenso para os setores, sem citar nomes reais de fonte/IA
-- daily: array de previsões para os próximos 5 dias
-- hourly: array de previsão hora a hora para 24 horas
-- decisionCenter: para CADA setor (agriculture, livestock, solar, fishing, navigation, alerts): "status" ("optimal"/"warning"/"critical"), "recommendation", "confidence" (0-100)
-- cie: objeto com "sources" (array de nomes genéricos), "consensus" (0-100), "justification" (texto, sem nomes reais), "confidenceIndex" ("Muito Alta"/"Alta"/"Média"/"Baixa"), "regionalHistoricalError" (número %), "divergenceValue" (número %), "rainProbabilityConsolidated" (0-100), "weights" (objeto com pesos numéricos por modelo genérico), "concordance" (array de nomes genéricos em concordância)`;
-
     const response = await callWithRetry(() =>
       ai.models.generateContent({
         model: "gemini-3.6-flash",
@@ -158,187 +356,48 @@ Consolide e retorne um objeto JSON completo com:
         config: {
           systemInstruction,
           responseMimeType: "application/json",
-          temperature: 0.2,
+          temperature: 0.1,
           responseSchema: {
             type: Type.OBJECT,
             properties: {
-              temp: { type: Type.NUMBER },
-              feelsLike: { type: Type.NUMBER },
-              max: { type: Type.NUMBER },
-              min: { type: Type.NUMBER },
-              condition: { type: Type.STRING },
-              humidity: { type: Type.NUMBER },
-              windSpeed: { type: Type.NUMBER },
-              windDirection: { type: Type.STRING },
-              pressure: { type: Type.NUMBER },
-              uvIndex: { type: Type.NUMBER },
-              visibility: { type: Type.NUMBER },
-              dewPoint: { type: Type.NUMBER },
-              pop: { type: Type.NUMBER },
-              rainMm: { type: Type.NUMBER },
-              cloudCover: { type: Type.NUMBER },
               aiSummary: { type: Type.STRING },
-              daily: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    day: { type: Type.STRING },
-                    date: { type: Type.STRING },
-                    max: { type: Type.NUMBER },
-                    min: { type: Type.NUMBER },
-                    pop: { type: Type.NUMBER },
-                    condition: {
-                      type: Type.STRING,
-                      enum: [
-                        "Sunny",
-                        "Clear",
-                        "PartlyCloudy",
-                        "Cloudy",
-                        "Rainy",
-                        "Storm",
-                      ],
-                    },
-                    description: { type: Type.STRING },
-                  },
-                  required: ["day", "date", "max", "min", "pop", "condition"],
-                },
-              },
-              hourly: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    time: { type: Type.STRING },
-                    temp: { type: Type.NUMBER },
-                    pop: { type: Type.NUMBER },
-                    condition: {
-                      type: Type.STRING,
-                      enum: [
-                        "Sunny",
-                        "Clear",
-                        "PartlyCloudy",
-                        "Cloudy",
-                        "Rainy",
-                        "Storm",
-                      ],
-                    },
-                  },
-                  required: ["time", "temp", "pop", "condition"],
-                },
-              },
               decisionCenter: {
                 type: Type.OBJECT,
                 properties: {
-                  agriculture: decisionCenterSectorSchema,
-                  livestock: decisionCenterSectorSchema,
-                  solar: decisionCenterSectorSchema,
-                  fishing: decisionCenterSectorSchema,
-                  navigation: decisionCenterSectorSchema,
-                  alerts: decisionCenterSectorSchema,
+                  agriculture: { type: Type.OBJECT },
+                  livestock: { type: Type.OBJECT },
+                  solar: { type: Type.OBJECT },
+                  fishing: { type: Type.OBJECT },
+                  navigation: { type: Type.OBJECT },
+                  alerts: { type: Type.OBJECT },
                 },
-                required: [
-                  "agriculture",
-                  "livestock",
-                  "solar",
-                  "fishing",
-                  "navigation",
-                  "alerts",
-                ],
               },
-              cie: {
-                type: Type.OBJECT,
-                properties: {
-                  sources: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  consensus: { type: Type.NUMBER },
-                  justification: { type: Type.STRING },
-                  confidenceIndex: {
-                    type: Type.STRING,
-                    enum: ["Muito Alta", "Alta", "Média", "Baixa"],
-                  },
-                  regionalHistoricalError: { type: Type.NUMBER },
-                  divergenceValue: { type: Type.NUMBER },
-                  rainProbabilityConsolidated: { type: Type.NUMBER },
-                  weights: {
-                    type: Type.OBJECT,
-                    properties: {
-                      ECMWF: { type: Type.NUMBER },
-                      "NOAA/GFS": { type: Type.NUMBER },
-                      INMET: { type: Type.NUMBER },
-                      "CPTEC/INPE": { type: Type.NUMBER },
-                      CEMADEN: { type: Type.NUMBER },
-                      REDEMET: { type: Type.NUMBER },
-                      NWS: { type: Type.NUMBER },
-                      Copernicus: { type: Type.NUMBER },
-                      JMA: { type: Type.NUMBER },
-                      KMA: { type: Type.NUMBER },
-                      "Météo-France": { type: Type.NUMBER },
-                    },
-                  },
-                  concordance: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING },
-                  },
-                },
-                required: [
-                  "sources",
-                  "consensus",
-                  "justification",
-                  "confidenceIndex",
-                  "rainProbabilityConsolidated",
-                ],
-              },
+              cie: { type: Type.OBJECT },
             },
-            required: [
-              "temp",
-              "condition",
-              "humidity",
-              "decisionCenter",
-              "cie",
-            ],
+            required: ["aiSummary", "decisionCenter", "cie"],
           },
         },
       }),
     );
 
-    const text = response.text || "";
-    const parsed = JSON.parse(
-      text
-        .replace(/```json\n?/g, "")
-        .replace(/```\n?/g, "")
-        .trim(),
-    );
-    parsed.cie = ensureCompleteCie(parsed.cie);
+    const text = String(response.text || "")
+      .replace(/```json\n?/g, "")
+      .replace(/```\n?/g, "")
+      .trim();
 
-    // Rede de segurança: garante que NENHUM item de hourly/daily venha sem `condition`
-    // (ou outros campos), mesmo que o schema falhe por algum motivo — essa era a causa
-    // provável do crash "Cannot read properties of undefined (reading 'includes')".
-    parsed.hourly = (Array.isArray(parsed.hourly) ? parsed.hourly : []).map(
-      (h: any, i: number) => ({
-        time: h?.time || `${i.toString().padStart(2, "0")}:00`,
-        temp: typeof h?.temp === "number" ? h.temp : parsed.temp || 25,
-        pop: typeof h?.pop === "number" ? h.pop : 10,
-        condition: h?.condition || parsed.condition || "Clear",
-      }),
-    );
-    parsed.daily = (Array.isArray(parsed.daily) ? parsed.daily : []).map(
-      (d: any, i: number) => ({
-        day: d?.day || `Dia ${i + 1}`,
-        date: d?.date || "",
-        max: typeof d?.max === "number" ? d.max : parsed.max || 30,
-        min: typeof d?.min === "number" ? d.min : parsed.min || 20,
-        pop: typeof d?.pop === "number" ? d.pop : 10,
-        condition: d?.condition || parsed.condition || "Clear",
-        description: d?.description || "",
-      }),
-    );
+    const parsed = JSON.parse(text);
 
-    return parsed;
-  } catch (err: any) {
-    console.error(
-      "[LLMManagerWeather] Erro no Gemini, usando dados simulados:",
-      err?.message || err,
+    return {
+      ...base,
+      aiSummary: parsed.aiSummary || base.aiSummary,
+      decisionCenter: ensureCompleteDecisionCenter(parsed.decisionCenter),
+      cie: ensureCompleteCie(parsed.cie, Boolean(inmetObs?.available)),
+    };
+  } catch (error: any) {
+    console.warn(
+      "[LLMManagerWeather] Gemini indisponível; mantendo dados meteorológicos reais:",
+      error?.message || error,
     );
-    return generateSimulatedWeatherData(city, state, country, lang);
+    return base;
   }
 }

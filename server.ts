@@ -2671,25 +2671,195 @@ app.get("/api/admin/diagnostics", requireAdmin, async (req, res) => {
   });
 });
 
-// Serve frontend assets in development and production
-async function startServer() {
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
+// ============================================================
+// SERVIDOR WEB - DESENVOLVIMENTO E PRODUÇÃO
+// ============================================================
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`ClimaAgora IA Server running on port ${PORT}`);
-  });
+async function startServer(): Promise<void> {
+  try {
+    const isProduction = process.env.NODE_ENV === "production";
+
+    console.log("");
+    console.log("============================================================");
+    console.log("          CLIMAAGORA IA - INICIALIZAÇÃO");
+    console.log("============================================================");
+    console.log(`Modo: ${isProduction ? "PRODUÇÃO" : "DESENVOLVIMENTO"}`);
+    console.log(`Diretório: ${process.cwd()}`);
+    console.log(`Node: ${process.version}`);
+    console.log("");
+
+    // ----------------------------------------------------------
+    // DESENVOLVIMENTO
+    // ----------------------------------------------------------
+    if (!isProduction) {
+      console.log("[Server] Inicializando Vite em middleware mode...");
+
+      const vite = await createViteServer({
+        server: {
+          middlewareMode: true,
+          hmr: false,
+        },
+        appType: "spa",
+      });
+
+      app.use(vite.middlewares);
+
+      console.log("[Server] Vite inicializado.");
+    }
+
+    // ----------------------------------------------------------
+    // PRODUÇÃO
+    // ----------------------------------------------------------
+    else {
+      const distPath = path.resolve(process.cwd(), "dist");
+
+      console.log(`[Server] Servindo frontend: ${distPath}`);
+
+      app.use(express.static(distPath));
+
+      app.get("*", (_req, res) => {
+        res.sendFile(path.join(distPath, "index.html"));
+      });
+    }
+
+    // ----------------------------------------------------------
+    // INICIAR HTTP SERVER
+    // ----------------------------------------------------------
+
+    const server = app.listen(PORT, "0.0.0.0");
+
+    server.on("listening", () => {
+      const address = server.address();
+
+      let addressText = `http://localhost:${PORT}`;
+
+      if (typeof address === "object" && address) {
+        addressText = `http://localhost:${address.port}`;
+      }
+
+      console.log("");
+      console.log(
+        "============================================================",
+      );
+      console.log("        CLIMAAGORA IA SERVER ONLINE");
+      console.log(
+        "============================================================",
+      );
+      console.log(`URL local:    ${addressText}`);
+      console.log(`API health:   ${addressText}/api/health`);
+      console.log(
+        `Modo:         ${isProduction ? "PRODUÇÃO" : "DESENVOLVIMENTO"}`,
+      );
+      console.log("Host:         0.0.0.0");
+      console.log("Porta:        " + PORT);
+      console.log(
+        "============================================================",
+      );
+      console.log("");
+      console.log("Servidor aguardando conexões...");
+      console.log("Pressione Ctrl+C para encerrar.");
+      console.log("");
+    });
+
+    server.on("error", (error: NodeJS.ErrnoException) => {
+      console.error("");
+      console.error(
+        "============================================================",
+      );
+      console.error("ERRO NO SERVIDOR HTTP");
+      console.error(
+        "============================================================",
+      );
+      console.error(error);
+
+      if (error.code === "EADDRINUSE") {
+        console.error("");
+        console.error(`A porta ${PORT} já está sendo utilizada.`);
+        console.error("Feche o processo que está utilizando essa porta.");
+      }
+
+      console.error("");
+      process.exitCode = 1;
+    });
+
+    server.on("close", () => {
+      console.warn("[Server] Servidor HTTP foi encerrado.");
+    });
+
+    // ----------------------------------------------------------
+    // PROTEÇÃO CONTRA ENCERRAMENTO SILENCIOSO
+    // ----------------------------------------------------------
+
+    process.on("SIGINT", () => {
+      console.log("");
+      console.log("[Server] Encerrando por solicitação do usuário...");
+
+      server.close(() => {
+        console.log("[Server] Servidor encerrado corretamente.");
+        process.exit(0);
+      });
+    });
+
+    process.on("SIGTERM", () => {
+      console.log("");
+      console.log("[Server] Recebido SIGTERM. Encerrando...");
+
+      server.close(() => {
+        process.exit(0);
+      });
+    });
+
+    // ----------------------------------------------------------
+    // MONITORAMENTO DE ERROS
+    // ----------------------------------------------------------
+
+    process.on("uncaughtException", (error) => {
+      console.error("");
+      console.error(
+        "============================================================",
+      );
+      console.error("UNCAUGHT EXCEPTION");
+      console.error(
+        "============================================================",
+      );
+      console.error(error);
+      console.error("");
+    });
+
+    process.on("unhandledRejection", (reason) => {
+      console.error("");
+      console.error(
+        "============================================================",
+      );
+      console.error("UNHANDLED PROMISE REJECTION");
+      console.error(
+        "============================================================",
+      );
+      console.error(reason);
+      console.error("");
+    });
+
+    // ----------------------------------------------------------
+    // MANTÉM O PROCESSO VIVO
+    // ----------------------------------------------------------
+    await new Promise<void>((resolve) => {
+      server.once("close", resolve);
+    });
+  } catch (error) {
+    console.error("");
+    console.error(
+      "============================================================",
+    );
+    console.error("FALHA CRÍTICA AO INICIAR CLIMAAGORA IA");
+    console.error(
+      "============================================================",
+    );
+    console.error(error);
+    console.error("");
+
+    process.exitCode = 1;
+  }
 }
 
-startServer();
+// Inicialização protegida
+void startServer();

@@ -1,154 +1,117 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { climaDataService } from './services/ClimaDataService';
-import { useDayNightPhase } from './hooks/useDayNightPhase';
-import { 
-  Home,
-  Sun, 
-  Cloud, 
-  CloudRain, 
-  CloudLightning, 
-  Moon, 
-  Wind, 
-  Compass, 
-  Droplets, 
-  AlertTriangle, 
-  Search, 
-  MessageSquare, 
-  Send, 
-  Activity, 
-  Settings, 
-  DollarSign, 
-  Map, 
-  User, 
-  Check, 
-  Globe, 
-  RefreshCw, 
-  Sliders, 
-  Database, 
-  Cpu,
-  Sparkles, 
-  TrendingUp, 
-  Tv, 
-  ShieldAlert, 
-  Shield, 
-  Eye, 
-  Layers, 
-  Maximize2, 
-  Minimize2,
-  ChevronRight, 
-  ChevronDown,
-  Bell,
-  Edit3,
-  Lock,
-  Flame,
-  Ship,
-  SunDim,
-  Sunrise,
-  Sunset,
-  UserCheck,
-  Star,
-  Trash2,
-  AlertCircle,
-  Printer,
-  Calendar,
-  MapPin,
-  Crosshair,
-  Download,
-  Thermometer,
-  ArrowUp,
+import {
+  Activity,
+  AlertTriangle,
   ArrowLeftRight,
+  ArrowUp,
+  Bell,
+  Calendar,
+  ChevronDown,
+  Cloud,
+  CloudLightning,
+  CloudRain,
+  Compass,
+  Crosshair,
+  DollarSign,
+  Download,
+  Droplets,
+  Edit3,
+  ExternalLink,
+  Eye,
+  Fingerprint,
+  Flame,
+  Globe,
+  GripHorizontal,
   HelpCircle,
   Inbox,
+  Info,
+  KeyRound,
+  Layers,
+  LogOut,
+  MapPin,
+  Moon,
   Plus,
-  ExternalLink,
-  WifiOff,
+  Printer,
   Radio,
-  Zap,
-  Clock,
-  Navigation,
-  BarChart3,
+  RefreshCw,
+  ScanFace,
+  Search,
+  Send,
+  Settings,
+  ShieldAlert,
+  Sliders,
+  Sparkles,
+  Star,
+  Sun,
+  Thermometer,
+  Trash2,
+  TrendingUp,
+  Tv,
+  User,
+  UserCheck,
   Volume2,
   VolumeX,
-  Filter,
-  Share2,
-  ZoomIn,
-  ZoomOut,
-  Play,
-  Fingerprint,
-  KeyRound,
-  GripHorizontal,
-  ScanFace,
-  Info,
-  LogIn,
-  LogOut,
+  WifiOff,
+  Wind,
   X
 } from 'lucide-react';
-import { weatherSound } from './utils/weatherSound';
-import { 
-  ResponsiveContainer, 
-  LineChart, 
-  Line, 
-  BarChart, 
-  Bar, 
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
   Cell,
   ComposedChart,
-  AreaChart,
-  Area,
-  XAxis, 
-  YAxis, 
-  Tooltip as RechartsTooltip, 
-  CartesianGrid, 
-  Legend as RechartsLegend,
-  LabelList,
-  RadarChart,
-  PolarGrid,
+  Line,
+  LineChart,
   PolarAngleAxis,
+  PolarGrid,
   PolarRadiusAxis,
   Radar,
-  ReferenceArea,
-  ReferenceLine
+  RadarChart,
+  Legend as RechartsLegend,
+  Tooltip as RechartsTooltip,
+  ReferenceLine,
+  ResponsiveContainer,
+  XAxis,
+  YAxis
 } from 'recharts';
+import { useDayNightPhase } from './hooks/useDayNightPhase';
+import { climaDataService } from './services/ClimaDataService';
+import { weatherSound } from './utils/weatherSound';
 // CORRIGIDO: Import do motion
+import { createUserWithEmailAndPassword, User as FirebaseUser, GoogleAuthProvider, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile } from 'firebase/auth';
+import { addDoc, collection, deleteDoc, doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore';
+import { AnimatePresence, motion } from 'motion/react';
+import { AdminPanel } from './components/AdminPanel';
+import { AdvancedWeatherSuiteCard } from './components/AdvancedWeatherSuiteCard';
+import { AgroRiskWidgetCard } from './components/AgroRiskWidgetCard';
+import { ClimateNewsCard } from './components/ClimateNewsCard';
+import { FloatingCompareWidget } from './components/FloatingCompareWidget';
+import { GlobalPhenomenaCard } from './components/GlobalPhenomenaCard';
+import { HelpModal } from './components/HelpModal';
+import { InteractiveTutorial } from './components/InteractiveTutorial';
+import { FixedFooter } from './components/layout/FixedFooter';
+import { ScrollNavOverlay } from './components/layout/ScrollNavOverlay';
+import { MoonPhasesCard } from './components/MoonPhasesCard';
+import { UserProfileType } from './components/ProfileOnboardingModal';
+import { SeasonsCard } from './components/SeasonsCard';
+import { SoilMoistureChartCard } from './components/SoilMoistureChartCard';
+import { SolarGenerationCard } from './components/SolarGenerationCard';
+import { TermsContent } from './components/TermsContent';
+import { TideTableCard } from './components/TideTableCard';
+import { TourIntelligentMapCard } from './components/TourIntelligentMapCard';
+import { WaterDeficitChartCard } from './components/WaterDeficitChartCard';
+import { auth, db } from './firebase';
 import { getTranslation, languages, SupportedLanguage } from './i18n';
-import { WeatherData, ChatMessage, SubscriptionPlan, AdminStats, WeatherCondition, ClimateAlert, LightningData, AIRecommendationRecord } from './types';
-import { RiskMap } from './components/RiskMap';
-import { AirQualityPanel } from './components/AirQualityPanel';
-import { MinutecastPanel } from './components/MinutecastPanel';
-import { LightningAlertPanel } from './components/LightningAlertPanel';
-import { Wind3DPressurePanel } from './components/Wind3DPressurePanel';
-import { NASAWildfireRadar } from './components/NASAWildfireRadar';
-import { CycloneTrackerPanel } from './components/CycloneTrackerPanel';
-import { THEME_TOKENS } from './constants/theme';
+import { AdminStats, AIRecommendationRecord, ChatMessage, SubscriptionPlan, WeatherCondition, WeatherData } from './types';
 
 export const CardStack: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
   <div className={`flex flex-col gap-4 sm:gap-5 w-full ${className}`}>
     {children}
   </div>
 );
-import { UVProtectionPanel } from './components/UVProtectionPanel';
-import { SeasonsCard } from './components/SeasonsCard';
-import { TermsContent } from './components/TermsContent';
-import { ClimateNewsCard } from './components/ClimateNewsCard';
-import { FixedFooter } from './components/layout/FixedFooter';
-import { ScrollNavOverlay } from './components/layout/ScrollNavOverlay';
-import { motion, AnimatePresence } from 'motion/react';
-import { db, auth } from './firebase';
-import { doc, setDoc, onSnapshot, serverTimestamp, collection, addDoc, deleteDoc } from 'firebase/firestore';
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User as FirebaseUser, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
-import { AdminPanel } from './components/AdminPanel';
-import { InteractiveTutorial } from './components/InteractiveTutorial';
-import { HelpModal } from './components/HelpModal';
-import { FloatingCompareWidget } from './components/FloatingCompareWidget';
-import { SoilMoistureChartCard } from './components/SoilMoistureChartCard';
-import { WaterDeficitChartCard } from './components/WaterDeficitChartCard';
-import { ProfileOnboardingModal, UserProfileType } from './components/ProfileOnboardingModal';
-import { TourIntelligentMapCard } from './components/TourIntelligentMapCard';
-import { AdvancedWeatherSuiteCard } from './components/AdvancedWeatherSuiteCard';
-import { TideTableCard } from './components/TideTableCard';
-import { MoonPhasesCard } from './components/MoonPhasesCard';
-import { SolarGenerationCard } from './components/SolarGenerationCard';
-import { GlobalPhenomenaCard } from './components/GlobalPhenomenaCard';
-import { AgroRiskWidgetCard } from './components/AgroRiskWidgetCard';
 
 interface AnimatedCounterProps {
   value: number;
@@ -2903,6 +2866,8 @@ export default function App() {
   const [authConfirmPassword, setAuthConfirmPassword] = useState<string>('');
   const [authName, setAuthName] = useState<string>('');
   const [authError, setAuthError] = useState<string | null>(null);
+  const [authErrorDomain, setAuthErrorDomain] = useState<string | null>(null);
+  const [authErrorDomainCopied, setAuthErrorDomainCopied] = useState<boolean>(false);
   const [authLoading, setAuthLoading] = useState<boolean>(false);
   const [authAcceptedTerms, setAuthAcceptedTerms] = useState<boolean>(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState<boolean>(false);
@@ -3669,6 +3634,8 @@ export default function App() {
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
+    setAuthErrorDomain(null);
+    setAuthErrorDomainCopied(false);
     
     if (!authEmail || !authPassword) {
       setAuthError("Por favor, preencha todos os campos obrigatórios.");
@@ -3817,6 +3784,8 @@ export default function App() {
 
   const handleGoogleSignIn = async () => {
     setAuthError(null);
+    setAuthErrorDomain(null);
+    setAuthErrorDomainCopied(false);
     setAuthLoading(true);
     try {
       const provider = new GoogleAuthProvider();
@@ -3840,7 +3809,8 @@ export default function App() {
       console.error("Google Auth error:", err);
       if (err?.code === 'auth/unauthorized-domain' || err?.message?.includes('unauthorized-domain') || err?.message?.includes('unauthorized domain')) {
         const domain = typeof window !== 'undefined' ? window.location.hostname : 'este domínio';
-        setAuthError(`O domínio "${domain}" não está na lista de domínios autorizados do Firebase Console (Authentication > Settings > Authorized Domains). Por favor, utilize o login por E-mail e Senha abaixo.`);
+        setAuthErrorDomain(domain);
+        setAuthError(`O domínio "${domain}" não está na lista de domínios autorizados do Firebase Console (Authentication > Settings > Authorized Domains). Por favor, utilize o login por E-mail e Senha abaixo, ou copie o domínio ao lado e cole no Firebase Console.`);
       } else if (err?.code === 'auth/popup-closed-by-user') {
         setAuthError("Autenticação com o Google cancelada (janela fechada).");
       } else if (err?.code === 'auth/cancelled-popup-request') {
@@ -3850,6 +3820,16 @@ export default function App() {
       }
     } finally {
       setAuthLoading(false);
+    }
+  };
+    const handleCopyAuthErrorDomain = async () => {
+    if (!authErrorDomain) return;
+    try {
+      await navigator.clipboard.writeText(authErrorDomain);
+      setAuthErrorDomainCopied(true);
+      setTimeout(() => setAuthErrorDomainCopied(false), 2500);
+    } catch (e) {
+      console.warn('[Auth] Could not copy domain to clipboard:', e);
     }
   };
 
@@ -6462,6 +6442,15 @@ export default function App() {
             {authError && (
               <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-[11px] font-semibold mb-4 leading-relaxed">
                 ⚠️ {authError}
+                {authErrorDomain && (
+                  <button
+                    type="button"
+                    onClick={handleCopyAuthErrorDomain}
+                    className="mt-2 flex items-center gap-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 font-bold text-[10px] uppercase tracking-wider px-2.5 py-1.5 rounded-lg transition"
+                  >
+                    {authErrorDomainCopied ? '✓ Domínio copiado!' : '📋 Copiar domínio'}
+                  </button>
+                )}
               </div>
             )}
 
@@ -11753,10 +11742,19 @@ export default function App() {
               </div>
 
               {authError && (
-                <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-[11px] font-semibold mb-4 leading-relaxed">
-                  ⚠️ {authError}
-                </div>
-              )}
+              <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-[11px] font-semibold mb-4 leading-relaxed">
+                ⚠️ {authError}
+                {authErrorDomain && (
+                  <button
+                    type="button"
+                    onClick={handleCopyAuthErrorDomain}
+                    className="mt-2 flex items-center gap-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 font-bold text-[10px] uppercase tracking-wider px-2.5 py-1.5 rounded-lg transition"
+                  >
+                    {authErrorDomainCopied ? '✓ Domínio copiado!' : '📋 Copiar domínio'}
+                  </button>
+                )}
+              </div>
+            )}
 
               <form onSubmit={handleAuthSubmit} className="space-y-4 text-xs">
                 {authMode === 'signup' && (

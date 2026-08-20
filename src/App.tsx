@@ -1135,6 +1135,7 @@ export default function App() {
           color: #0f172a !important;
         }
       `;
+    };
 
     applyGlobalTheme();
     window.addEventListener('climaagora-theme-change', applyGlobalTheme);
